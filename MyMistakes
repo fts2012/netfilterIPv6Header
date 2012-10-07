@@ -1,0 +1,2 @@
+1. Makefile
+	before every command it should have a 'tab', otherwise it won't be seen as a command.
