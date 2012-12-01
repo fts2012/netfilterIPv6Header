@@ -17,18 +17,20 @@
 #include <net/checksum.h>
 #include <net/udp.h>
 #include <net/ipv6.h>
-//#include <netinet/in.h>
-//#include <sys/time.h>
+#include <linux/time.h>
+
+#include <asm/byteorder.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Qiu Jin");
 MODULE_DESCRIPTION("Change the header of ipv6 packet");
 
-#define PRINT(fmt,args...) printk("Marker: " fmt, ##args)
+#define PRINT(fmt,args...) printk(", " fmt, ##args)
 
 
 /* IP6 Hooks */
-/* After promisc drops, checksum checks. */
+/* After promisc drops#include <asm/byteorder.h>
+, checksum checks. */
 #define NF_IP6_PRE_ROUTING  0
 /* If the packet is destined for this box. */
 #define NF_IP6_LOCAL_IN     1
@@ -40,7 +42,8 @@ MODULE_DESCRIPTION("Change the header of ipv6 packet");
 #define NF_IP6_POST_ROUTING 4
 
 
-/*sequence of measeure sample packet*/
+/*sequence of measeure#include <asm/byteorder.h>
+ sample packet*/
 static int sample_seq = 0;
 
 /*Next header destination header*/
@@ -94,59 +97,149 @@ void print_6addr(const struct in6_addr *addr)
                  (int)addr->s6_addr[12], (int)addr->s6_addr[13],
                  (int)addr->s6_addr[14], (int)addr->s6_addr[15]);
           return(buff);
+
   }
 
 struct sk_buff *
-ip6_encapsulate_pkt(struct sk_buff **skb)
+ip6_reconstruct_ori_pkt(struct sk_buff *skb)
+{
+	struct ipv6hdr * ip6_hdr = ipv6_hdr(skb);
+	struct ip6_dst_hdr *ip6_dst;
+	struct timeval tv;//get time
+int i =0;
+	ip6_hdr->nexthdr = 0x60;//set next header as 60 which means next destination header.
+    ip6_hdr->payload_len = htons(0x26);
+PRINT("%u,%u,%u\n",skb->data,skb->data+40,skb->data+skb->len);
+	//move tail to tail + sizeof(ip6_dst_hdr)
+	skb_put(skb, sizeof(struct ip6_dst_hdr));
+    //skb->truesize += sizeof(struct ip6_dst_hdr);
+    //----------till here is right-------//
+
+	//insert a ip6_dst_hdr between the memory
+	//memcpy (new_skb->data, skb->data, 40);//assume that the ip header has 40 bytes
+
+//PRINT("HEADER before copy, %x\n",*(long *)(skb->data + 40));
+
+for(i = skb->data; i < skb->data + skb->len -4; i = i+4)
+{
+    PRINT("%x",*(long *)(i));
+}
+PRINT("%u,%u,%u\n",skb->data,skb->data+40,skb->data+skb->len);
+    //memcpy (skb->data + 40 + sizeof (struct ip6_dst_hdr),
+	//		          skb->data + 40, skb->len - 56);//for the length of skb is increased 16, so we should minus 16+40 to get the left content
+
+    int begin = skb->data + 40;
+    int end = skb->data + skb->len -16;
+    for(i = end; i-begin >=16; i=i-16)
+    {
+    memcpy(i,i-16,16);
+    }
+    if(i-begin>0)
+        memcpy(begin+16,begin,i-begin);
+
+
+//PRINT("HEADER after copy, %x\n",*(long *)(skb->data + 40+ sizeof (struct ip6_dst_hdr)));
+for(i = skb->data; i < skb->data + skb->len -4; i = i+4)
+{
+    PRINT("%x",*(long *)(i));
+}
+PRINT("\n");
+
+    //turn the space to ip6_dst struct
+	ip6_dst = (struct ip6_dst_hdr *)(skb->data + 40);
+    memset(ip6_dst,0,sizeof(struct ip6_dst_hdr));//clear
+	//add ipv6 destination header
+	ip6_dst->ip6d_nxt = 0x17;
+	ip6_dst->ip6d_len = 0x15;
+	ip6_dst->ip6d_opt_type = 0x00;// type of option
+	ip6_dst->ip6d_opt_len = 0x0C;
+
+	do_gettimeofday(&tv);
+	//ip6_dst->ip6d_sec =x(2.4.21-37.EL htonl(tv.tv_sec);
+    ip6_dst->ip6d_sec = htonl(tv.tv_sec);
+	ip6_dst->ip6d_usec = htonl(tv.tv_usec);
+//PRINT("time:%x,%x \n",tv.tv_sec,tv.tv_usec);
+	sample_seq++;
+	if(sample_seq==0xffffffff)//if overflow ，reset
+	{
+	   sample_seq=0;
+	}
+	ip6_dst->ip6d_ssn = htonl(sample_seq);
+for(i = skb->data; i < skb->data + skb->len -4; i = i+4)
+{
+    PRINT("%x",*(long *)(i));
+}
+//PRINT("HEADER new, %x\n",*(struct ip6_dst_hdr *)(skb->data + 40));
+//PRINT("HEADER new 40, %x\n",*(struct ip6_dst_hdr *)(skb->data + 40+ sizeof (struct ip6_dst_hdr)));
+	return skb;
+}
+
+struct sk_buff *
+ip6_encapsulate_pkt(struct sk_buff *skb)
 {
 	struct sk_buff *new_skb, *temp_skb;
-	struct ipv6hdr * ip6_hdr = ipv6_hdr(*skb);
+	struct ipv6hdr * ip6_hdr = ipv6_hdr(skb);
 	struct ip6_dst_hdr *ip6_dst;
 	struct timeval tv;//get time
 
-	temp_skb = *skb;
 	ip6_hdr->nexthdr = 0x60;//set next header as 60 which means next destination header.
 
 	//copy from the *skb to new_skb
-	new_skb = skb_copy_expand(*skb, skb_headroom(*skb),
-				skb_tailroom(*skb) + sizeof(struct ip6_dst_hdr),
+	new_skb = skb_copy_expand(skb, skb_headroom(skb),
+				skb_tailroom(skb) + sizeof(struct ip6_dst_hdr),
 				GFP_ATOMIC);
+
 	if(new_skb == NULL)
 	{
 		PRINT("Allocate new sk_buffer error!\n");
-		//if error happens ,will free the last struct cause any problem?
-		//kfree_skb(temp_skb);
+		//FIXME:if error happens ,will free the last struct cause any problem?
+		//kfree_skb(skb);
 		return NULL;
 	}
 
 	//set the new_skb
-	if(temp_skb->sk != NULL)
-		skb_set_owner_w(new_skb, temp_skb->sk);
+	if(skb->sk != NULL)
+		skb_set_owner_w(new_skb, skb->sk);
 
 	//move tail to tail + sizeof(ip6_dst_hdr)
 	skb_put(new_skb,sizeof(struct ip6_dst_hdr));
-  
+    
+    //----------till here is right-------//
+    memcpy (skb->data + 40 + sizeof (struct ip6_dst_hdr),
+			          skb->data + 40, skb->len - 56);//for the length of skb is increased 16, so we should minus 16+40 to get the left content
+
 	//insert a ip6_dst_hdr between the memory
-	memcpy (new_skb->data, temp_skb->data, 40);//assume that the ip header has 40 bytes
-    	memcpy (new_skb->data + 40 + sizeof (struct ip6_dst_hdr),
-			          temp_skb->data + 40, temp_skb->len - 40);
+	memcpy (new_skb->data, skb->data, 40);//assume that the ip header has 40 bytes
 
+    memcpy (new_skb->data + 40 + sizeof (struct ip6_dst_hdr),
+			          skb->data + 40, skb->len - 40);
 
+//now the data in 40 and 40+sizeof (struct ip6_dst_hdr) are same
+//
+PRINT("HEADER new, %x\n",*(new_skb->data + 42));
+PRINT("HEADER new 40, %x\n",*(new_skb->data + 42+ sizeof (struct ip6_dst_hdr)));
 	//release the old struct
-	kfree_skb(temp_skb);
+//FOR TEST:
+//	kfree_skb(skb);
 
-	skb = &new_skb;//skb pointer to new_skb
+	skb = new_skb;//skb pointer to new_skb
 
-	ip6_dst = (struct ip6_dst_hdr *)(new_skb->data + 40);
+    //turn the space to ip6_dst struct
+	ip6_dst = (struct ip6_dst_hdr *)(skb->data + 40);
+    memset(ip6_dst,0,sizeof(struct ip6_dst_hdr));//clear
 	//add ipv6 destination header
-	ip6_dst->ip6d_nxt = IPPROTO_UDP;
-	ip6_dst->ip6d_len = 0x01;
-	ip6_dst->ip6d_opt_type = 0x15;// type of option
-	ip6_dst->ip6d_opt_len =  0x0C;
-	//TODO:sys/time.h cant't find
-	//gettimeofday(&tv, NULL);
+	ip6_dst->ip6d_nxt = 0x11;
+	ip6_dst->ip6d_len = 0x15;
+	ip6_dst->ip6d_opt_type = 0x00;// type of option
+	ip6_dst->ip6d_opt_len = 0x0C;
+PRINT("HEADER ip6d_nxt, %x\n",ip6_dst->ip6d_nxt);
+PRINT("HEADER ipdst, %x\n",*(ip6_dst));
+PRINT("HEADER new, %x\n",*(int *)(skb->data + 40));
+	do_gettimeofday(&tv);
 	//ip6_dst->ip6d_sec =x(2.4.21-37.EL htonl(tv.tv_sec);
-	//ip6_dst->ip6d_usec = htonl(tv.tv_usec);
+    ip6_dst->ip6d_sec = htonl(tv.tv_sec);
+	ip6_dst->ip6d_usec = htonl(tv.tv_usec);
+//PRINT("time:%x,%x \n",tv.tv_sec,tv.tv_usec);
 	sample_seq++;
 	if(sample_seq==0xffffffff)//if overflow ，reset
 	{
@@ -154,12 +247,53 @@ ip6_encapsulate_pkt(struct sk_buff **skb)
 	}
 	ip6_dst->ip6d_ssn = htonl(sample_seq);
 
+ip6_hdr->hop_limit = 1;
 	//checksum, ipv6 dose not have a checksum part
-
-	return *skb;
+//ip6_hdr = ipv6_hdr(new_skb);
+//PRINT("new skb next hdr:%x",&ip6_hdr->nexthdr);
+	return skb;
 }
 
 
+/*test begin*/
+struct sk_buff *
+ip6_encapsulate_pkt_t(struct sk_buff *skb)
+{
+	struct sk_buff *new_skb, *temp_skb;
+	struct ipv6hdr * ipv6h;
+    struct udphdr *udph;
+
+	
+
+	//copy from the *skb to new_skb
+	new_skb = skb_copy(skb, GFP_ATOMIC);
+	if(new_skb == NULL)
+	{
+		PRINT("Allocate new sk_buffer error!\n");
+		//FIXME:if error happens ,will free the last struct cause any problem?
+		kfree_skb(skb);
+		return NULL;
+	}
+    udph = udp_hdr(skb);
+	printk(" skb sum %u,CheckSum  = %u\n",skb->ip_summed,udph->check);
+
+    __be16 udplen = udph->len;
+    ipv6h = ipv6_hdr(skb);
+    //udphdr = 
+    ipv6h->nexthdr = 0x60;//set next header as 60 which means next destination header.
+    
+    //ip6_hdr->flow_lbl = 
+    udph->check = csum_ipv6_magic(&ipv6h->saddr,&ipv6h->daddr, udplen,IPPROTO_UDP, csum_partial((char*)udph,udplen,0));
+		printk(" skb sum %u,CheckSum  = %u\n",skb->ip_summed,udph->check);
+    //kfree_skb(skb);
+    skb = new_skb;//skb pointer to new_skb
+    
+	
+//ip6_hdr = ipv6_hdr(new_skb);
+//PRINT("new skb next hdr:%x",&ip6_hdr->nexthdr);
+	return skb;
+}
+/*test end*/
 /*Hook which will call the encapsulate func when condition satisfied
  *condition1: IPv6 Multicast packets
  *condition2: every 20ms
@@ -181,13 +315,35 @@ ip6_multi_modify(unsigned int hooknum,
 if(ip6_hdr->version == 6)
 {
     struct in6_addr destip = ip6_hdr->daddr;//destination ip
-    if(destip.s6_addr[0] == 0xff)
+    //TODO:use module_para or /proc to replace here
+//PRINT("DEST ip : %x,%x",(&destip)->s6_addr[0],(&destip)->s6_addr[1]);
+    if(destip.s6_addr[0] == 0xff && destip.s6_addr[1] == 0x15)
     //FIXME:find where ipv6_addr_is_multicast belongs to
     //if(ipv6_addr_is_multicast(&ip6_hdr->daddr))
     {
-        //ip6_encapsulate_pkt(skb);
-        PRINT("next hdr:%d",ip6_hdr->nexthdr);
-        print_6addr(&ip6_hdr->daddr);
+        if(skb_tailroom(sk) >= 40)
+        {
+            PRINT("tailroom is enough\n");
+            skb = ip6_reconstruct_ori_pkt(skb);
+        }
+        else
+        {
+            
+            skb = ip6_encapsulate_pkt(skb);
+            PRINT("not enough\n");
+        }
+//print before change
+//skb = ip6_encapsulate_pkt_t(skb);
+        if(skb == NULL)
+        {
+            PRINT("Allocate new sk_buffer error!\n");
+            return NF_STOLEN;
+        }
+
+
+        if(!skb)
+            return NF_STOLEN;
+        //print_6addr(&ip6_hdr->daddr);
     }
 /*
     else
