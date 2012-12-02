@@ -1,0 +1,102 @@
+/*
+* this programe is working as plugin of netfilter which will change the source address
+* the object multicast packet.
+*/
+
+
+#include <linux/netfilter.h>
+#include <linux/netfilter_ipv6.h>
+#include <linux/netfilter_ipv6/ip6_tables.h>
+#include <linux/module.h>
+#include <linux/moduleparam.h>
+#include <linux/kernel.h>
+#include <linux/inet.h>
+#include <linux/ip.h>
+#include <linux/udp.h>
+#include <net/checksum.h>
+#include <net/udp.h>
+#include <net/ipv6.h>
+#include <linux/time.h>
+
+#include <asm/byteorder.h>
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Qiu Jin");
+MODULE_DESCRIPTION("Change the header of ipv6 packet");
+
+#define PRINT(fmt,args...) printk(", " fmt, ##args)
+
+
+/* IP6 Hooks */
+/* After promisc drops#include <asm/byteorder.h>
+, checksum checks. */
+#define NF_IP6_PRE_ROUTING  0
+/* If the packet is destined for this box. */
+#define NF_IP6_LOCAL_IN     1
+/* If the packet is destined for another interface. */
+#define NF_IP6_FORWARD      2
+/* Packets coming from a local process. */
+#define NF_IP6_LOCAL_OUT        3
+/* Packets about to hit the wire. */
+#define NF_IP6_POST_ROUTING 4
+
+/*
+* Hook deal with the the ipv6 packets, block specified address
+*/
+static unsigned int 
+ip6_modify_addr(unsigned int hooknum,
+				struct sk_buff *skb,
+				const struct net_device *in,
+				const struct net_device *out,
+				int (*okfn)(struct sk_buff*))
+{
+    struct sk_buff *sk = skb;
+	struct ipv6hdr *ip6_hdr = ipv6_hdr(skb);//header
+
+    if(ip6_hdr->version == 6)
+    {
+        struct in6_addr destip = ip6_hdr->daddr;//destination ip
+        //specify the ipv6 address that need block
+        if(destip.s6_addr[0] == 0xff && destip.s6_addr[1] == 0x15)
+        {
+            //if it match the condition then drop it
+            ip6_hdr->saddr.s6_addr[1] = 0x02;
+            //change the source addr from 2001:0da8:1001:000a:c530:e697:9ce5:0186
+            //to 2002:0da8:1001:000a:c530:e697:9ce5:0186
+
+            return NF_ACCEPT;      
+        }
+    }
+    
+    return NF_ACCEPT;      
+}
+
+
+
+/*Initialize the hook*/
+static struct nf_hook_ops nf_out_modify =
+{
+	.hook = ip6_modify_addr,
+	.hooknum = NF_IP6_PRE_ROUTING,//Check all the forwarded packets
+	.pf = PF_INET6,
+	.priority = NF_IP6_PRI_FIRST,
+};
+
+/*Initialize the module*/
+static int __init ip6_moaddr_init(void)
+{
+	int ret;
+	ret = nf_register_hook(&nf_out_modify);
+	PRINT("IPV6 address modify module init.\n");
+	return 0; //success
+}
+
+/*Clear the module*/
+static void __exit ip6_moaddr_exit(void)
+{
+	nf_unregister_hook(&nf_out_modify);
+	PRINT("IPV6 address modify module exit.\n");
+}
+
+module_init(ip6_moaddr_init);
+module_exit(ip6_moaddr_exit);
