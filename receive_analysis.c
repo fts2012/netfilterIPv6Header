@@ -1,8 +1,7 @@
 /*
-* this programe is working as plugin of netfilter which will change the source address
-* the object multicast packet.
+* this programe is working as plugin of netfilter 
+* which analysis the specified packets
 */
-
 
 #include <linux/netfilter.h>
 #include <linux/netfilter_ipv6.h>
@@ -12,19 +11,19 @@
 #include <linux/kernel.h>
 #include <linux/inet.h>
 #include <linux/ip.h>
-#include <linux/udp.h>
-#include <net/checksum.h>
-#include <net/udp.h>
 #include <net/ipv6.h>
-#include <linux/time.h>
+#include "common.h"
 
-#include <asm/byteorder.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Qiu Jin");
-MODULE_DESCRIPTION("Change the header of ipv6 packet");
+MODULE_DESCRIPTION("analysis the specified packets");
 
-#define PRINT(fmt,args...) printk(", " fmt, ##args)
+//static long int ip4addr = 0;
+static int host_type = 0;//see as 
+//module_param(ip4addr, long, S_IRUGO);
+
+#define PRINT(fmt,args...) printk("debug, " fmt, ##args)
 
 
 /* IP6 Hooks */
@@ -44,7 +43,7 @@ MODULE_DESCRIPTION("Change the header of ipv6 packet");
 * Hook deal with the the ipv6 packets, block specified address
 */
 static unsigned int 
-ip6_modify_addr(unsigned int hooknum,
+ip6_analysis_pkt(unsigned int hooknum,
 				struct sk_buff *skb,
 				const struct net_device *in,
 				const struct net_device *out,
@@ -52,6 +51,7 @@ ip6_modify_addr(unsigned int hooknum,
 {
     struct sk_buff *sk = skb;
 	struct ipv6hdr *ip6_hdr = ipv6_hdr(skb);//header
+	struct ip6_dst_hdr *ip6_dst;
 
     if(ip6_hdr->version == 6)
     {
@@ -60,43 +60,48 @@ ip6_modify_addr(unsigned int hooknum,
         if(destip.s6_addr[0] == 0xff && destip.s6_addr[1] == 0x15)
         {
             //if it match the condition then drop it
-            ip6_hdr->saddr.s6_addr[1] = 0x02;
-            //change the source addr from 2001:0da8:1001:000a:c530:e697:9ce5:0186
-            //to 2002:0da8:1001:000a:c530:e697:9ce5:0186
+            if(ip6_hdr->nexthdr == 0x3c)
+            {
+                	ip6_dst = (struct ip6_dst_hdr *)(skb->data + 40);
+                    //write this information into a process
+                    PRINT("sequence number:%x",ntohl(ip6_dst->ip6d_ssn));
+                    PRINT("time:%x",ntohl(ip6_dst->ip6d_sec));
+                    PRINT("sequence number:%x",ntohl(ip6_dst->ip6d_usec));
+                    //drop these packets
+                    return NF_ACCEPT;
+            }
 
-            return NF_ACCEPT;      
         }
     }
     
-    return NF_ACCEPT;      
+    return NF_ACCEPT;
 }
 
 
-
 /*Initialize the hook*/
-static struct nf_hook_ops nf_out_modify =
+static struct nf_hook_ops nf_in_analysis = 
 {
-	.hook = ip6_modify_addr,
-	.hooknum = NF_IP6_POST_ROUTING,//Check all the forwarded packets
+	.hook = ip6_analysis_pkt,
+	.hooknum = NF_IP6_LOCAL_IN,//SEE IF MULTICAST PASS HERE
 	.pf = PF_INET6,
 	.priority = NF_IP6_PRI_FIRST,
 };
 
 /*Initialize the module*/
-static int __init ip6_moaddr_init(void)
+static int __init ip6_analysisi_init(void)
 {
 	int ret;
-	ret = nf_register_hook(&nf_out_modify);
+	ret = nf_register_hook(&nf_in_analysis);
 	PRINT("IPV6 address modify module init.\n");
 	return 0; //success
 }
 
 /*Clear the module*/
-static void __exit ip6_moaddr_exit(void)
+static void __exit ip6_analysisi_exit(void)
 {
-	nf_unregister_hook(&nf_out_modify);
+	nf_unregister_hook(&nf_in_analysis);
 	PRINT("IPV6 address modify module exit.\n");
 }
 
-module_init(ip6_moaddr_init);
-module_exit(ip6_moaddr_exit);
+module_init(ip6_analysisi_init);
+module_exit(ip6_analysisi_exit);

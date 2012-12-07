@@ -264,7 +264,7 @@ if(ip6_hdr->version == 6)
         if(ip6_hdr->nexthdr != 0x3c){
             //if the next header is no 60 that is this packet was not reconstructed
             skb = ip6_reconstruct_copy_pkt(skb);
-            ip_route_me_harder(skb,RTN_LOCAL);
+            ip_route_me_harder(skb,RTN_LOCAL);//ip6_route_me_harder
             okfn(skb);  
             //drop the old skb
             return NF_STOLEN;

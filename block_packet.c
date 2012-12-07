@@ -5,23 +5,23 @@
 
 #include <linux/netfilter.h>
 #include <linux/netfilter_ipv6.h>
-#include <linux/netfilter_ipv4.h>
+#include "/usr/src/linux-headers-3.2.0-26-generic-pae/include/linux/netfilter_ipv4.h"
+//#include <linux/netfilter_ipv4.h>
 #include <linux/netfilter_ipv6/ip6_tables.h>
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/kernel.h>
 #include <linux/inet.h>
 #include <linux/ip.h>
-#include <linux/udp.h>
-#include <net/checksum.h>
-#include <net/udp.h>
 #include <net/ipv6.h>
-#include <linux/time.h>
 
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Qiu Jin");
 MODULE_DESCRIPTION("Change the header of ipv6 packet");
+
+static long int ip4addr = 0;
+module_param(ip4addr, long, S_IRUGO);
 
 #define PRINT(fmt,args...) printk("debug, " fmt, ##args)
 
@@ -33,6 +33,7 @@ MODULE_DESCRIPTION("Change the header of ipv6 packet");
 #define NF_IP6_LOCAL_IN     1
 /* If the packet is destined for another interface. */
 #define NF_IP6_FORWARD      2
+
 /* Packets coming from a local process. */
 #define NF_IP6_LOCAL_OUT        3
 /* Packets about to hit the wire. */
@@ -50,6 +51,7 @@ void print_6addr(const struct in6_addr *addr)
                  (int)addr->s6_addr[12], (int)addr->s6_addr[13],
                  (int)addr->s6_addr[14], (int)addr->s6_addr[15]);
 }
+
 
 /*
 * Hook deal with the the ipv6 packets, block specified address
@@ -95,6 +97,7 @@ ip4_block(unsigned int hooknum,
 				const struct net_device *in,
 				const struct net_device *out,
 				int (*okfn)(struct sk_buff*))
+
 {
     struct sk_buff *sk = skb;
 	struct iphdr *ip4_hdr = ip_hdr(skb);//header
@@ -102,7 +105,8 @@ ip4_block(unsigned int hooknum,
     if(ip4_hdr->version == 4)
     {
         //it was blocked, when visit 58.192.114.8
-        if(ip4_hdr->daddr == htonl(0x3ac07208))
+        //if(ip4_hdr->daddr == htonl(0x3ac07208))
+if(ip4_hdr->daddr == htonl(ip4addr))
         {
             PRINT("BLOCKED!");
             PRINT("v4 address:%x\n",ip4_hdr->daddr);
@@ -117,14 +121,14 @@ ip4_block(unsigned int hooknum,
 static struct nf_hook_ops nf_out_block =
 {
 	.hook = ip6_block,
-	.hooknum = NF_IP6_PRE_ROUTING,//Check all the forwarded packets
+	.hooknum = NF_IP6_POST_ROUTING,
 	.pf = PF_INET6,
 	.priority = NF_IP6_PRI_FIRST,
 };
 static struct nf_hook_ops nf_out_4block =
 {
 	.hook = ip4_block,
-	.hooknum = NF_IP6_POST_ROUTING,//here will have no effect when using PRE_ROUTING
+	.hooknum = NF_IP6_POST_ROUTING,//acturally here is NF_IP_POST_ROUTING which value is 4
 	.pf = PF_INET,
 	.priority = NF_IP_PRI_FIRST,
 };
@@ -133,8 +137,8 @@ static struct nf_hook_ops nf_out_4block =
 static int __init ip6_block_init(void)
 {
 	int ret;
-	ret = nf_register_hook(&nf_out_block);
-	//ret = nf_register_hook(&nf_out_4block);
+	//ret = nf_register_hook(&nf_out_block);
+	ret = nf_register_hook(&nf_out_4block);
 	PRINT("IPV6 block packet module init.\n");
 	return 0; //success
 }
@@ -142,8 +146,8 @@ static int __init ip6_block_init(void)
 /*Clear the module*/
 static void __exit ip6_block_exit(void)
 {
-	nf_unregister_hook(&nf_out_block);
-	//nf_unregister_hook(&nf_out_4block);
+	//nf_unregister_hook(&nf_out_block);
+	nf_unregister_hook(&nf_out_4block);
 	PRINT("IPV6 block packet module exit.\n");
 }
 
