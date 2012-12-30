@@ -13,6 +13,10 @@
 #include <linux/ip.h>
 #include <net/ipv6.h>
 #include "common.h"
+#include <linux/netlink.h>
+#include <net/sock.h>
+#include <linux/types.h>
+
 
 
 MODULE_LICENSE("GPL");
@@ -25,7 +29,7 @@ static int host_type = 0;//see as
 
 #define PRINT(fmt,args...) printk("debug, " fmt, ##args)
 
-
+#define NETLINK_TEST 31
 /* IP6 Hooks */
 /* After promisc drops#include <asm/byteorder.h>
 , checksum checks. */
@@ -38,6 +42,68 @@ static int host_type = 0;//see as
 #define NF_IP6_LOCAL_OUT        3
 /* Packets about to hit the wire. */
 #define NF_IP6_POST_ROUTING 4
+
+/* netlink socket */
+struct sock *nl_sk = NULL;
+
+/* store the ip addreses which will be dealed */
+struct ip_list * ipaddrs;
+
+
+/* 
+ * Accpet the commands from user space to set the rules
+ */
+void nl_data_ready (struct sock *sk, int len)
+{
+    //wake_up_interruptible(sk->sleep);
+    struct sk_buff *skb;
+    struct nlmsghdr *nlh;
+    char str[100];
+    char * command, *addr_str
+    //struct completion cmpl;
+    int i=10;
+    skb = skb_get (__skb);
+    if(skb->len >= NLMSG_SPACE(0))
+    {
+         nlh = nlmsg_hdr(skb);
+
+         memcpy(str, NLMSG_DATA(nlh), sizeof(str));
+         printk("Message received:%s\n",str) ;
+         analysis_info(command, addr_str, str, ">");
+// the comand format
+// ADD>x:x:x:x
+// DEL>x:x:x:x
+        if add
+
+        else if del
+         
+/*
+         pid = nlh->nlmsg_pid; //the source process id
+         while(i--)
+         {
+           //no need to use synchronized mechannism
+           // init_completion(&cmpl);//?
+           // wait_for_completion_timeout(&cmpl,3 * HZ);//?
+            sendnlmsg("I am from kernel!");
+
+         }
+         flag = 1;
+*/
+         kfree_skb(skb);
+     }
+}
+
+void netlink_test() {
+    struct sk_buff *skb = NULL;
+    struct nlmsghdr *nlh = NULL;
+    int err;
+    u32 pid;    
+
+    nl_sk = netlink_kernel_create(&init_net, NETLINK_TEST, 1,
+                                 nl_data_ready, NULL, THIS_MODULE);
+
+    sock_release(nl_sk->socket);
+}
 
 /*
 * Hook deal with the the ipv6 packets, block specified address
@@ -57,18 +123,24 @@ ip6_analysis_pkt(unsigned int hooknum,
     {
         struct in6_addr destip = ip6_hdr->daddr;//destination ip
         //specify the ipv6 address that need block
-        if(destip.s6_addr[0] == 0xff && destip.s6_addr[1] == 0x15)
+        //if(destip.s6_addr[0] == 0xff && destip.s6_addr[1] == 0x15)
+        if(match_rule(ipaddrs, destip))
         {
             //if it match the condition then drop it
             if(ip6_hdr->nexthdr == 0x3c)
             {
                 	ip6_dst = (struct ip6_dst_hdr *)(skb->data + 40);
                     //write this information into a process
-                    PRINT("sequence number:%x",ntohl(ip6_dst->ip6d_ssn));
-                    PRINT("time:%x",ntohl(ip6_dst->ip6d_sec));
-                    PRINT("sequence number:%x",ntohl(ip6_dst->ip6d_usec));
+                    PRINT("sequence number:%u ",ntohl(ip6_dst->ip6d_ssn));
+                    PRINT("time:%Lu ",ntohl(ip6_dst->ip6d_sec));
+                    PRINT("utime:%Lu ",ntohl(ip6_dst->ip6d_usec));
                     //drop these packets
                     return NF_ACCEPT;
+            }
+            else
+            {
+                //Measurement point has no need to play the vedio
+                //return NF_DROP;
             }
 
         }
@@ -92,7 +164,8 @@ static int __init ip6_analysisi_init(void)
 {
 	int ret;
 	ret = nf_register_hook(&nf_in_analysis);
-	PRINT("IPV6 address modify module init.\n");
+    netlink_test();
+	PRINT("IPV6 packets receive and analysis module init.\n");
 	return 0; //success
 }
 
@@ -100,7 +173,7 @@ static int __init ip6_analysisi_init(void)
 static void __exit ip6_analysisi_exit(void)
 {
 	nf_unregister_hook(&nf_in_analysis);
-	PRINT("IPV6 address modify module exit.\n");
+	PRINT("IPV6 packets receive and analysis module exit.\n");
 }
 
 module_init(ip6_analysisi_init);

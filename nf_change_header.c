@@ -59,19 +59,7 @@ struct ip6_dst_hdr
 };
 
 
-inline
-void print_6addr(const struct in6_addr *addr)
-{
-    PRINT("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
-                 (int)addr->s6_addr[0], (int)addr->s6_addr[1],
-                 (int)addr->s6_addr[2], (int)addr->s6_addr[3],
-                 (int)addr->s6_addr[4], (int)addr->s6_addr[5],
-                 (int)addr->s6_addr[6], (int)addr->s6_addr[7],
-                 (int)addr->s6_addr[8], (int)addr->s6_addr[9],
-                 (int)addr->s6_addr[10], (int)addr->s6_addr[11],
-                 (int)addr->s6_addr[12], (int)addr->s6_addr[13],
-                 (int)addr->s6_addr[14], (int)addr->s6_addr[15]);
-}
+
  char *in_ntoa(__u32 in)
   {
           static char buff[18];
