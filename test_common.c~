@@ -61,7 +61,7 @@ char *cmds;
 
     if(addrs != NULL)
     {
-        if(match_rule(addrs,"ff15::1"))
+        if(match_rule2(addrs,"ff15::1"))
             printf("match");
         /*node = addrs->head;
         while(node != NULL)

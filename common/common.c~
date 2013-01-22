@@ -21,7 +21,7 @@ void init(ip_list *list)
 /*
  * To judge whether the check_ip in ipaddres
  */
-int match_rule(const ip_list ipaddrs, char * check_ip)
+int match_rule2(const ip_list ipaddrs, char * check_ip)
 {
     ip_node node = ipaddrs->head;
     while(node != NULL)
@@ -33,6 +33,26 @@ int match_rule(const ip_list ipaddrs, char * check_ip)
             return true;*/
         //the check_ip's type is char*
         if(memcpy(node->addr,check_ip,strlen(check_ip)) == 0)
+            return 1;
+        node = node->next;
+    }
+    return 0;
+}
+int match_rule(const ip_list ipaddrs, struct in6_addr * check_ip)
+{
+    struct in6_addr temp;
+
+    ip_node node = ipaddrs->head;
+    while(node != NULL)
+    {
+        /*if(ipaddrs->addr.u6_addr32[0] == check_ip.u6_addr32[0] &&
+            ipaddrs->addr.u6_addr32[1] == check_ip.u6_addr32[1] &&
+            ipaddrs->addr.u6_addr32[2] == check_ip.u6_addr32[2] &&
+            ipaddrs->addr.u6_addr32[3] == check_ip.u6_addr32[3] )
+            return true;*/
+        //the check_ip's type is in6_addr*
+        inet_pton(AF_INET6, node->addr, (void *)&temp);
+        if(memcmp(&temp,check_ip,strlen(check_ip)) == 0)
             return 1;
         node = node->next;
     }

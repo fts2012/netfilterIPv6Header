@@ -1,6 +1,7 @@
 /*
 * this programe is working as plugin of netfilter 
 * which analysis the specified packets
+* work in mss (source server)
 */
 
 #include <linux/netfilter.h>
@@ -12,7 +13,7 @@
 #include <linux/inet.h>
 #include <linux/ip.h>
 #include <net/ipv6.h>
-#include "common.h"
+#include "../common/common.h"
 #include <linux/netlink.h>
 #include <net/sock.h>
 #include <linux/types.h>

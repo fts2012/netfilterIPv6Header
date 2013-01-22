@@ -1,3 +1,7 @@
+/**
+ * Use netlink to communicate with kernel
+ */
+
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -10,10 +14,13 @@
 #include <linux/socket.h>
 #include <errno.h>
 
-#define NETLINK_TEST 31
-#define MAX_PAYLOAD 1024 // maximum payload size
+#include "com_kernel_mss.h"
 
-int main(int argc, char* argv[])
+/**
+ * ip=xxxx&interval=xx
+ * return 0 means error
+ */
+int send_msg_to_kernel(char* cmd)
 {
     int state;
     struct sockaddr_nl src_addr, dest_addr;
@@ -62,7 +69,8 @@ int main(int argc, char* argv[])
     nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
     nlh->nlmsg_pid = getpid();//sending process prot id
     nlh->nlmsg_flags = 0;
-    strcpy(NLMSG_DATA(nlh),"Hello world!");//TODO MESSAGE
+
+    strcpy(NLMSG_DATA(nlh), cmd);
 
     iov.iov_base = (void *)nlh;
     iov.iov_len = NLMSG_SPACE(MAX_PAYLOAD);
@@ -75,28 +83,20 @@ int main(int argc, char* argv[])
     msg.msg_iov = &iov;
     msg.msg_iovlen = 1;
 
-    printf("state_smg\n");
+    // Send message
     state_smg = sendmsg(sock_fd,&msg,0);
-
     if(state_smg == -1)
     {
         printf("get error sendmsg = %s\n",strerror(errno));
     }
 
     memset(nlh,0,NLMSG_SPACE(MAX_PAYLOAD));
-    printf("waiting received!\n");
-    // Read message from kernel
 
-    while(1){
-        state = recvmsg(sock_fd, &msg, 0);
-        if(state<0)
-        {
-            printf("state<1");
-        }
-        printf("Received message: %s\n",(char *) NLMSG_DATA(nlh));
-    }
+    // Read message from kernel
+    state = recvmsg(sock_fd, &msg, 0);
 
     close(sock_fd);
-    return 0;
+    if(strcmp((char *) NLMSG_DATA(nlh),"done")==0)
+        return 1;
+    else return 0;
 }
-

@@ -1,6 +1,7 @@
 /*
 * this programe is working as plugin of netfilter 
 * which analysis the specified packets
+* work in mmp (measurement point)
 */
 
 #include <linux/netfilter.h>
@@ -8,7 +9,7 @@
 #include <linux/netfilter_ipv6/ip6_tables.h>
 #include <linux/module.h>
 #include <linux/moduleparam.h>
-#include <linux/kernel.h>l
+#include <linux/kernel.h>
 #include <linux/inet.h>
 #include <linux/ip.h>
 #include <net/ipv6.h>
@@ -30,6 +31,7 @@ static int host_type = 0;//see as
 #define PRINT(fmt,args...) printk("debug, " fmt, ##args)
 
 #define NETLINK_TEST 31
+#define MAX_MSGSIZE 1024
 /* IP6 Hooks */
 /* After promisc drops#include <asm/byteorder.h>
 , checksum checks. */
@@ -45,9 +47,11 @@ static int host_type = 0;//see as
 
 /* netlink socket */
 struct sock *nl_sk = NULL;
+/* the process id of userspace process*/
+int pid;
 
 /* store the ip addreses which will be dealed */
-struct ip_list  ipaddrs;
+ip_list  ipaddrs;
 
 
 /**
@@ -96,7 +100,7 @@ void nl_data_ready(struct sk_buff *__skb)
 
 int interval = 0;
 char command[6] ={'\0'},ipaddr[60]={'\0'};
-
+struct in6_addr recvaddr;
     skb = skb_get (__skb);
     if(skb->len >= NLMSG_SPACE(0))
     {
@@ -105,6 +109,8 @@ char command[6] ={'\0'},ipaddr[60]={'\0'};
          memcpy(str, NLMSG_DATA(nlh), sizeof(str));
          printk("Message received:%s\n",str) ;
         sscanf(str, "cmd=%s ip=%s interval=%d", command, ipaddr,&interval);
+memcpy(recvaddr,ipaddr,sizeof(recvaddr));
+//convert ipaddr to struct in6_addr
 
 // the comand format
 // ADD>x:x:x:x
@@ -112,11 +118,11 @@ char command[6] ={'\0'},ipaddr[60]={'\0'};
         if(strcmp(command,"ADD")==0)
          {
 
-              add_rule(&ipaddrs, ipaddr);
+              add_rule(&ipaddrs, &recvaddr);
          }
          else if(strcmp(command,"DEL")==0)
          {
-              del_rule(&ipaddrs, ipaddr);
+              del_rule(&ipaddrs, &recvaddr);
          }
 
          pid = nlh->nlmsg_pid; //the source process id
@@ -127,7 +133,7 @@ char command[6] ={'\0'},ipaddr[60]={'\0'};
      }
  }
 
-void netlink_test() {
+/*void netlink_test() {
     struct sk_buff *skb = NULL;
     struct nlmsghdr *nlh = NULL;
     int err;
@@ -137,7 +143,7 @@ void netlink_test() {
                                  nl_data_ready, NULL, THIS_MODULE);
 
     sock_release(nl_sk->socket);
-}
+}*/
 
 /*
 * Hook deal with the the ipv6 packets, block specified address
@@ -158,7 +164,8 @@ ip6_analysis_pkt(unsigned int hooknum,
         struct in6_addr destip = ip6_hdr->daddr;//destination ip
         //specify the ipv6 address that need block
         //if(destip.s6_addr[0] == 0xff && destip.s6_addr[1] == 0x15)
-        if(match_rule(ipaddrs, destip))
+
+        if(match_rule(ipaddrs, &destip))
         {
             //if it match the condition then drop it
             if(ip6_hdr->nexthdr == 0x3c)
@@ -208,7 +215,6 @@ static int __init ip6_analysisi_init(void)
     
     //register hooks
 	ret = nf_register_hook(&nf_in_analysis);
-    netlink_test();
 	PRINT("IPV6 packets receive and analysis module init.\n");
 	return 0; //success
 }
