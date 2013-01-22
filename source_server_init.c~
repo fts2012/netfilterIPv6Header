@@ -62,7 +62,8 @@ int main(int argc, char* argv[])
     nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
     nlh->nlmsg_pid = getpid();//sending process prot id
     nlh->nlmsg_flags = 0;
-    strcpy(NLMSG_DATA(nlh),"Hello world!");//TODO MESSAGE
+    //strcpy(NLMSG_DATA(nlh),"Hello world!");//TODO MESSAGE
+strcpy(NLMSG_DATA(nlh),"cmd=add ip=ff15::1 interval=5");//TODO MESSAGE
 
     iov.iov_base = (void *)nlh;
     iov.iov_len = NLMSG_SPACE(MAX_PAYLOAD);

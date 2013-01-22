@@ -51,7 +51,7 @@ struct sock *nl_sk = NULL;
 int pid;
 
 /* store the ip addreses which will be dealed */
-ip_list  ipaddrs;
+ip_list  ipaddrs = NULL;
 
 
 /**
@@ -97,19 +97,19 @@ void nl_data_ready(struct sk_buff *__skb)
     char str[100];
     //struct completion cmpl;
     int i=10;
-
 int interval = 0;
 char command[6] ={'\0'},ipaddr[60]={'\0'};
 struct in6_addr recvaddr;
+printk("nl_data_ready......in\n");
     skb = skb_get (__skb);
     if(skb->len >= NLMSG_SPACE(0))
     {
-         nlh = nlmsg_hdr(skb);
+        nlh = nlmsg_hdr(skb);
 
-         memcpy(str, NLMSG_DATA(nlh), sizeof(str));
-         printk("Message received:%s\n",str) ;
+        memcpy(str, NLMSG_DATA(nlh), sizeof(str));
+        printk("Message received:%s\n",str) ;
         sscanf(str, "cmd=%s ip=%s interval=%d", command, ipaddr,&interval);
-memcpy(recvaddr,ipaddr,sizeof(recvaddr));
+        memcpy(&recvaddr,ipaddr,sizeof(recvaddr));
 //convert ipaddr to struct in6_addr
 
 // the comand format
@@ -165,7 +165,7 @@ ip6_analysis_pkt(unsigned int hooknum,
         //specify the ipv6 address that need block
         //if(destip.s6_addr[0] == 0xff && destip.s6_addr[1] == 0x15)
 
-        if(match_rule(ipaddrs, &destip))
+        if(ipaddrs == NULL || match_rule(ipaddrs, &destip)==0)
         {
             //if it match the condition then drop it
             if(ip6_hdr->nexthdr == 0x3c)

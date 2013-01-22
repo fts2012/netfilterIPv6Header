@@ -29,11 +29,7 @@ void init(ip_list *list)
     ip_node node = ipaddrs->head;
     while(node != NULL)
     {
-        /*if(ipaddrs->addr.u6_addr32[0] == check_ip.u6_addr32[0] &&
-            ipaddrs->addr.u6_addr32[1] == check_ip.u6_addr32[1] &&
-            ipaddrs->addr.u6_addr32[2] == check_ip.u6_addr32[2] &&
-            ipaddrs->addr.u6_addr32[3] == check_ip.u6_addr32[3] )
-            return true;
+        
         //the check_ip's type is char*
         if(memcpy(node->addr,check_ip,strlen(check_ip)) == 0)
             return 1;
@@ -43,8 +39,6 @@ void init(ip_list *list)
 }*/
 int match_rule(const ip_list ipaddrs, struct in6_addr * check_ip)
 {
-    struct in6_addr temp;
-
     ip_node node = ipaddrs->head;
     while(node != NULL)
     {
@@ -54,7 +48,7 @@ int match_rule(const ip_list ipaddrs, struct in6_addr * check_ip)
             ipaddrs->addr.u6_addr32[3] == check_ip.u6_addr32[3] )
             return true;*/
         //the check_ip's type is in6_addr*
-        if(memcmp(&temp,check_ip,sizeof(check_ip)) == 0)
+        if(memcmp(&node->addr,check_ip,sizeof(check_ip)) == 0)
             return 1;
         node = node->next;
     }

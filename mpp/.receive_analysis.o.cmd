@@ -1,1 +1,0 @@
-cmd_/home/fts/repository/netfilterIPv6Header/mpp/receive_analysis.o := ld -m elf_i386   -r -o /home/fts/repository/netfilterIPv6Header/mpp/receive_analysis.o /home/fts/repository/netfilterIPv6Header/mpp/common.o 
