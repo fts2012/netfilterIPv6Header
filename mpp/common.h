@@ -8,7 +8,6 @@
 #include <net/ipv6.h>
 
 
-
 /*The content to be added in the extend header in ipv6 packets
 */
 

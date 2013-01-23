@@ -8,7 +8,6 @@
 #include <net/ipv6.h>
 
 
-
 /*The content to be added in the extend header in ipv6 packets
 */
 
@@ -60,7 +59,7 @@ void add_rule(ip_list *ipaddrs, struct in6_addr * check_ip);
  * Delete  the rull
  */
 //void del_rule(ip_list *ipaddrs, char *check_ip);
-void del_rule(ip_list *ipaddrs, struct in6_addr * check_ip)
+void del_rule(ip_list *ipaddrs, struct in6_addr * check_ip);
 
 /**
  * Analysis the str to get command and ip address

@@ -10,7 +10,8 @@
 #include <linux/socket.h>
 #include <errno.h>
 
-#define NETLINK_TEST 31
+//#define NETLINK_TEST 31
+#define NETLINK_TEST 30
 #define MAX_PAYLOAD 1024 // maximum payload size
 
 int main(int argc, char* argv[])
