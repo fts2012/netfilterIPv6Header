@@ -50,6 +50,10 @@ class ExecuterHandler : virtual public ExecuterIf {
 
 };
 
+// http://mail-archives.apache.org/mod_mbox/incubator-thrift-user/200905.mbox/%3C79457101792928636947652638746352105373-Webmail@me.com%3E
+// Error"<Host: ::ffff:121.248.29.109 Port: 54804>Connection reset by peer" will occur
+//2012.2.25 no solution now, but it won't affect the process
+
 int main(int argc, char **argv) {
   int port = 9090;
   shared_ptr<ExecuterHandler> handler(new ExecuterHandler());

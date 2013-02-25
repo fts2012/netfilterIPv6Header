@@ -29,8 +29,8 @@ int send_msg_to_kernel(char* cmd)
     struct msghdr msg;
     int sock_fd, retval;
     int state_smg = 0;
+    
     // Create a socket
-
     sock_fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_TEST);
     if(sock_fd == -1){
         printf("error getting socket: %s", strerror(errno));
