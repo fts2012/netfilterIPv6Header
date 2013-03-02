@@ -24,6 +24,7 @@
 #include <thrift/protocol/TBinaryProtocol.h>
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransportUtils.h>
+#include "send_measure_info.h"
 
 #include "./gen-cpp/RecvMessage.h"
 
@@ -32,8 +33,6 @@ using namespace apache::thrift;
 using namespace apache::thrift::protocol;
 using namespace apache::thrift::transport;
 
-using namespace tutorial;
-using namespace shared;
 
 using namespace boost;
 
@@ -49,11 +48,12 @@ int sendmsg(const std::string& msg) {
   try {
     transport->open();
 
+cout<<"send msg:"<<msg<<endl;
     client.send_measure_info(msg);
 
     transport->close();
   } catch (TException &tx) {
     printf("ERROR: %s\n", tx.what());
   }
-
+    return 0;
 }

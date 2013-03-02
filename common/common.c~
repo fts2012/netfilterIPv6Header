@@ -51,6 +51,7 @@ int match_rule(const ip_list ipaddrs, struct in6_addr * check_ip)
             ipaddrs->addr.u6_addr32[3] == check_ip.u6_addr32[3] )
             return true;*/
         //the check_ip's type is in6_addr*
+        //user space
         inet_pton(AF_INET6, node->addr, (void *)&temp);
         if(memcmp(&temp,check_ip,strlen(check_ip)) == 0)
             return 1;

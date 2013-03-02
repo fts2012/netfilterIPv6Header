@@ -150,21 +150,13 @@ ip6_reconstruct_ori_pkt(struct sk_buff *skb)
     int extend_len = sizeof(struct ip6_dst_hdr);
 	ip6_hdr->nexthdr = 0x3c;//set next header as 60 which means next destination header.
     ip6_hdr->payload_len =  htons(ntohs(ip6_hdr->payload_len) + extend_len);
-PRINT("%u,%u,%u\n",skb->data,skb->data+40,skb->data+skb->len);
 	//move tail to tail + sizeof(ip6_dst_hdr)
-PRINT("TRUESIZE:%d,len:%d,%d\n",skb->truesize,skb->len,skb->data_len);
 	skb_put(skb, sizeof(struct ip6_dst_hdr));
     skb->truesize += sizeof(struct ip6_dst_hdr);
-PRINT("TRUESIZE:%d,len:%d,%d\n",skb->truesize,skb->len,skb->data_len);
 
 
 	//insert a ip6_dst_hdr between the memory
 
-for(i = skb->data; i <= skb->data + skb->len -20; i = i+4)
-{
-    PRINT("%x",htonl(*(long *)(i)));
-}
-PRINT("%u,%u,%u\n",skb->data,skb->data+40,skb->data+skb->len);
     //memcpy (skb->data + 40 + sizeof (struct ip6_dst_hdr),
 	//		          skb->data + 40, skb->len - 56);//for the length of skb is increased 16, so we should minus 16+40 to get the left content
 
@@ -177,14 +169,6 @@ PRINT("%u,%u,%u\n",skb->data,skb->data+40,skb->data+skb->len);
     }
     if(i-begin>0)
         memcpy(begin+16,begin,i-begin);
-
-
-//PRINT("HEADER after copy, %x\n",*(long *)(skb->data + 40+ sizeof (struct ip6_dst_hdr)));
-for(i = skb->data; i <= skb->data + skb->len -4; i = i+4)
-{
-    PRINT("%x",htonl(*(long *)(i)));
-}
-PRINT("\n");
 
     //turn the space to ip6_dst struct
 	ip6_dst = (struct ip6_dst_hdr *)(skb->data + 40);
@@ -311,22 +295,24 @@ if(ip6_hdr->version == 6)
     //if(ipv6_addr_is_multicast(&ip6_hdr->daddr))
     {
 //FIXME:The size of tail room
-       /* if(skb_tailroom(sk) >= 40)
+        /*
+        if(skb_tailroom(sk) >= 40)
         {
             PRINT("tailroom is enough\n");
             skb = ip6_reconstruct_ori_pkt(skb);
         }
         else
         {*/
-           // if(ip6_hdr->nexthdr == 0x11){
+            if(ip6_hdr->nexthdr == 0x11){
         
-        if(ip6_hdr->nexthdr != 0x3c){
+        //if(ip6_hdr->nexthdr != 0x3c){
             //if the next header is no 60 that is this packet was not reconstructed
             skb = ip6_reconstruct_copy_pkt(skb);
             ip_route_me_harder(skb,RTN_LOCAL);//ip6_route_me_harder
             okfn(skb);  
             //drop the old skb
-            return NF_STOLEN;
+            //TODO:WHAT WILL DROP?
+            return NF_ACCEPT;
         }
         //        PRINT("not enough\n");
         //    }

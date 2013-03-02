@@ -1,5 +1,5 @@
 /**
- * ipv6
+ * use libpcap catch packets
  *
  */
 #include<stdio.h>
@@ -10,12 +10,13 @@
 #include<arpa/inet.h>
 #include<netinet/in.h>
 #include <netinet/ip6.h>
+#include "send_measure_info.cpp"
 
 #include <string.h>
-#include <send_measure_info.h>
 
 #define DEVICE_TYPE 2
 #define ETH_SIZE 14
+#define PACKET_SIZE 65535
 
 struct ip6_dst_hdr
 {
@@ -29,8 +30,8 @@ struct ip6_dst_hdr
 };
 
 /* calcute the measure info items of new packet*/
-int count =0;
-char newpkt[65535];
+int cnt =0;
+char newpkt[PACKET_SIZE];
 
 /*the ip address of this device*/
 char device_ip[INET6_ADDRSTRLEN];
@@ -46,7 +47,9 @@ void deal_with_pkt(u_char *arg, const struct pcap_pkthdr *pkthdr, const u_char *
     //if match rules store and transmit the content
     // 
     //if match rules store and transmit the content
-printf("xxxx");
+printf("%d,",cnt);
+
+
     struct ip6_hdr * ipv6_hdr = (struct ip6_hdr*)(packet + ETH_SIZE); 
     //struct ipv6hdr * ip6_hdr = (struct ipv6_hdr*)(packet + sizeof(eth_hdr)); 
     struct in6_addr destip = ipv6_hdr->ip6_dst;//destination ip
@@ -56,41 +59,34 @@ printf("xxxx");
     char  addr[INET6_ADDRSTRLEN];
 
     //TODO:condition
-    //if(match rule)
-    if(destip.s6_addr[0] == 0xff && destip.s6_addr[1] == 0x15)
+    //if(match ip rule) and destination header
+    if(destip.s6_addr[0] == 0xff && destip.s6_addr[1] == 0x15 && ipv6_hdr->ip6_ctlun.ip6_un1.ip6_un1_nxt == 60)
     {
 
-//TODO:test change it to 17 and send 
-        if(ipv6_hdr->ip6_ctlun.ip6_un1.ip6_un1_nxt == 17)
-        {
         //nxthdr =  (struct ip6_dst_hdr *)(packet + 40 + ETH_SIZE);
         //1,2001:da9:2324:1234:1243::1,12345678912134567,12345678912134567,555555,ff15:1234::2;
         //type, device ip, send ts ,recv ts, sequence, group ip
         inet_ntop(AF_INET6, &destip, addr, sizeof(addr));
-//printf("2,%ld:;",  pkthdr->ts.tv_sec );
 
-       // sprintf(item, "%s,%s,%ld:%ld,%ld:%ld,%d,%s;", DEVICE_TYPE, addr, nxthdr->ip6d_sec, nxthdr->ip6d_usec,(pkthdr->ts).tv_sec,(pkthdr->ts).tv_usec ,nxthdr->ip6d_ssn, device_ip);
-sprintf(item, "%s,%s,%ld:%ld,%s;", DEVICE_TYPE, addr,(pkthdr->ts).tv_sec,(pkthdr->ts).tv_usec , device_ip);
+        sprintf(item, "%s,%s,%ld:%ld,%ld:%ld,%d,%s;", DEVICE_TYPE, addr, nxthdr->ip6d_sec, nxthdr->ip6d_usec,(pkthdr->ts).tv_sec,(pkthdr->ts).tv_usec ,nxthdr->ip6d_ssn, device_ip);
 
-printf("%s,%s,%ld:%ld,%s;", DEVICE_TYPE, addr,(pkthdr->ts).tv_sec,(pkthdr->ts).tv_usec , device_ip);
-        //TODO:ITEM SET
-        if(count <300)
+        if(cnt <300)
         {
-            strncat(newpkt, item, 131);//concat two string
-            count++;  
+            strncat(newpkt, item, 187);//concat two string
+            cnt++;  
         }else{
             // when the packets size is enough then send it to mcs
-//            send_to_mcs(newpkt);
+            sendmsg(newpkt);
             printf("content is :%s\n", newpkt);
 
             //clear for next measure info packet
-            count = 0;
+            cnt = 0;
             // set zero
-           // memzero(newpkt);
+            memset(newpkt, 0, PACKET_SIZE);
         }
 
-        }
     }
+
 }
 
 

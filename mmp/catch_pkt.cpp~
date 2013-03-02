@@ -1,5 +1,5 @@
 /**
- * ipv6
+ * use libpcap catch packets
  *
  */
 #include<stdio.h>

@@ -1,3 +1,6 @@
+#ifndef SEND_MESSAGE_INFO_H
+#define SEND_MESSAGE_INFO_H
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
@@ -17,5 +20,11 @@
  * under the License.
  */
 
+#include <string>
+#include <iostream>
+
 
 int sendmsg(const std::string& msg);
+
+
+#endif

@@ -1,3 +1,4 @@
+# for test
 import sys
 import sqlite3
 sys.path.append('./gen-py')
@@ -8,20 +9,11 @@ from deal_message.ttypes import *
 from thrift.transport import TSocket
 from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
-from thrift.server import TServer#TProcessPoolServer #TNonblockingServer
+from thrift.server import TNonblockingServer
+
+#TServer#TProcessPoolServer #
 
 import socket
-import signal
-
-def setupHandlers():
-    signal.signal(signal.SIGINT, handleSIGINT)
-    #Optionally if you want to keep the current socket connection open and working
-    #tell python to make system calls non-interruptable, which is probably what you want.
-    signal.siginterrupt(signal.SIGINT, False)
-
-def handleSIGINT(sig, frame):
-     #clean up state or what ever is necessary
-     sys.exit(0)
 
 class RecvHandler:
 	'''
@@ -50,6 +42,7 @@ class RecvHandler:
 		'''
 		for the measure point to report the measure result
 		'''
+		print msg
 		#split message with ; to get every item
 		items = msg.strip('\n').split(';')
 		print items
@@ -60,13 +53,13 @@ processor = RecvMessage.Processor(handler)
 transport = TSocket.TServerSocket("localhost",9090)
 pfactory = TBinaryProtocol.TBinaryProtocolFactory()
 tfactory = TTransport.TBufferedTransportFactory()
-server = TServer.TThreadedServer(processor, transport, tfactory, pfactory)
+#server = TServer.TThreadedServer(processor, transport, tfactory, pfactory)
 
 #server = TServer.TProcessPoolServer(processor, transport, tfactory, pfactory)
 #server.setPostForkCallback(setupHandlers)
 #setupHandlers()
 
-#server = TNonblockingServer.TNonblockingServer(processor, transport, inputProtocolFactory=pfactory)
+server = TNonblockingServer.TNonblockingServer(processor, transport, inputProtocolFactory=pfactory)
 
 
 
