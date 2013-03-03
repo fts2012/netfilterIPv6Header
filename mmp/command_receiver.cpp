@@ -48,6 +48,9 @@ protected:
 
 int main(int argc, char **argv) {
 
+    
+    
+  //server single connect with mcs
   shared_ptr<TProtocolFactory> protocolFactory(new TBinaryProtocolFactory());
   shared_ptr<RecvCommandHandler> handler(new RecvCommandHandler());
   shared_ptr<TProcessor> processor(new RecvCommandProcessor(handler));

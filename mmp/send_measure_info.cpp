@@ -48,7 +48,7 @@ int sendmsg(const std::string& msg) {
   try {
     transport->open();
 
-cout<<"send msg:"<<msg<<endl;
+    cout<<"send msg:"<<msg<<endl;
     client.send_measure_info(msg);
 
     transport->close();

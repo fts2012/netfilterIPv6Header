@@ -1,115 +1,113 @@
 
 /**
  * Some common struts and functions used in both server and client
- * 'work on the kernel'
+ * 'work on the userspace' with share memory
+ * for two threads
  */
 
 #include "common.h"
+#include <stdio.h>
+#include <string.h>
 
+int size_shm;
+ip_node *node_ptr = NULL;
 /*
  * init the list of rules
  */
-void init(ip_list *list)
+int create_shm(const char *shm_name, int size)
 {
+    int shm_id;
+    key_t key;    
+    key = ftok(shm_name,0);
+    size_shm = size;
+    if(key == -1)
+		return 0;
+key =0x000010221;//why use this the segment fault won't happen while ftok happens
+	shm_id = shmget(key,size_shm*sizeof(ip_node),IPC_CREAT|0777);	
+    if(shm_id == -1)
+	{
+		printf("shmget error");
+		return 0;
+	}
+    
+    //set 0
+    node_ptr = shmat(shm_id,NULL,0);
+    memset(node_ptr, 0 ,size_shm*sizeof(ip_node));
 
-//    ip_list tmp = (ip_list)malloc(sizeof(struct _ip_list));
-// use kmalloc instead of malloc in kernel
-    ip_list tmp = (ip_list)malloc(sizeof(struct _ip_list));
-    tmp->head = NULL;
-    tmp->tail = NULL;
-    tmp->count = 0;
-    *list = tmp;
+    return shm_id;
 }
 
-int match_rule(const ip_list ipaddrs, struct in6_addr * check_ip)
+
+int match_rule(int shm_id, struct in6_addr * check_ip)
 {
-    ip_node node = ipaddrs->head;
-    while(node != NULL)
+    int i;
+    int rtn = 0;
+    //travel shared memory to find whether it exist
+    for(i = 0;i<size_shm;i++)
     {
-        //the check_ip's type is in6_addr*
-        if(memcmp(&node->addr,check_ip,sizeof(check_ip)) == 0)
-            return 1;
-        node = node->next;
-    }
-    return 0;
-}
-
-/*
- *ADD the if it match the rull
- */
-
-void add_rule(ip_list *ipaddrs, struct in6_addr * check_ip)
-{
-    //allocate memory
-    ip_node node = (ip_node)malloc(sizeof(struct _ip_node));
-
-    //copy data,because the type is pointer
-    memcpy(&node->addr,check_ip,sizeof(check_ip));
-//    node->addr = check_ip;
-    //memcpy(check_ip, node->addr,sizeof());
-
-    node->next=NULL;
-
-    if(*ipaddrs==NULL)
-    {
-        init(ipaddrs);
-        (*ipaddrs)->head = node;
-        (*ipaddrs)->tail = node;
-    }    
-    else
-    {
-        (*ipaddrs)->tail->next = node;
-        (*ipaddrs)->tail = node;
-    }
-    //count +1
-    (*ipaddrs)->count ++;
-}
-
-/*
- *DEL the if it match the rull
- */
-void del_rule(ip_list *ipaddrs, struct in6_addr * check_ip)
-{
-    ip_node node = (*ipaddrs)->head;
-    ip_node pre = (*ipaddrs)->head;
-    while(node != NULL)
-    {
-        //if find, only 1
-        if(memcmp(&node->addr,check_ip,sizeof(node->addr)) == 0)
+        //is the item is in use and the address of the item is equal to the checking ip 
+        if((*(node_ptr+i)).is_use && memcmp(&(*(node_ptr+i)).addr,check_ip,sizeof(struct in6_addr)) == 0)
         {
-            if(node == (*ipaddrs)->head)
-            {
-                (*ipaddrs)->head = node->next;
-                free(node->addr);
+            rtn = 1;
+        }
+    }
+    return rtn;
+}
 
-            }
-            else if(node == (*ipaddrs)->tail)
-            {
-                (*ipaddrs)->tail = pre;
-                pre->next = NULL;
-                free(node->addr);
-//free(node->addr);
+/*
+ *ADD the if it match the rule
+ */
 
-            }
-            else
-            {
-                pre->next = node->next;
-                free(node->addr);
-//free(node->addr);
+void add_rule(int shm_id, struct in6_addr * check_ip)
+{
+    int i;
+    //travel shared memory to find whether it exist
 
-            }
-            (*ipaddrs)->count --;
+    for(i = 0;i<size_shm;i++)
+    {
+        //find a space that not used
+        if((*(node_ptr+i)).is_use==0)
+        {
+            (*(node_ptr+i)).is_use =1;
+            memcpy(&(*(node_ptr+i)).addr,check_ip,sizeof(struct in6_addr));
             break;
         }
-        else
-        {
-            pre = node;
-            node = node->next;
-        }
     }
-
 }
 
+/*
+ *DEL the if it match the rule
+ */
+void del_rule(int shm_id, struct in6_addr * check_ip)
+{
+    int i;
+    //travel shared memory to find whether it exist
+    for(i = 0;i<size_shm;i++)
+    {
+        //find a space that match check_ip and set the space to zero
+        if((*(node_ptr+i)).is_use && memcmp(&(*(node_ptr+i)).addr,check_ip,sizeof(struct in6_addr)) == 0)
+        {
+            (*(node_ptr+i)).is_use = 0;
+            memset(&(*(node_ptr+i)).addr, 0, sizeof(struct in6_addr));
+            break;
+        }
+    }
+}
+
+/**
+ * detach the connection
+ */
+void free_shm(int shm_id)
+{
+    if(shm_id!= -1)
+    {
+//detach
+        if(shmdt(node_ptr)==-1)
+		    printf(" detach error ");
+//deep delete
+shmctl(shm_id , IPC_RMID , 0 );
+    }
+}
 /*
  * Analysis str according to delim to get command and ip address
  */
@@ -126,7 +124,7 @@ void analysis_info(char *command, char *addr_str, char *str,const char *delim)
 void print_6addr(const struct in6_addr *addr)
 {
     //PRINT
-    printk("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
+    printf("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
                  (int)addr->s6_addr[0], (int)addr->s6_addr[1],
                  (int)addr->s6_addr[2], (int)addr->s6_addr[3],
                  (int)addr->s6_addr[4], (int)addr->s6_addr[5],
