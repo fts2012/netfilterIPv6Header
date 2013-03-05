@@ -15,8 +15,8 @@
 class RecvCommandIf {
  public:
   virtual ~RecvCommandIf() {}
-  virtual bool add_measure_group(const std::string& str_addr, const int32_t interval) = 0;
-  virtual bool del_measure_group(const std::string& str_addr, const int32_t interval) = 0;
+  virtual bool add_measure_group(const std::string& str_addr, const int32_t interval, const int32_t port) = 0;
+  virtual bool del_measure_group(const std::string& str_addr, const int32_t interval, const int32_t port) = 0;
 };
 
 class RecvCommandIfFactory {
@@ -46,32 +46,34 @@ class RecvCommandIfSingletonFactory : virtual public RecvCommandIfFactory {
 class RecvCommandNull : virtual public RecvCommandIf {
  public:
   virtual ~RecvCommandNull() {}
-  bool add_measure_group(const std::string& /* str_addr */, const int32_t /* interval */) {
+  bool add_measure_group(const std::string& /* str_addr */, const int32_t /* interval */, const int32_t /* port */) {
     bool _return = false;
     return _return;
   }
-  bool del_measure_group(const std::string& /* str_addr */, const int32_t /* interval */) {
+  bool del_measure_group(const std::string& /* str_addr */, const int32_t /* interval */, const int32_t /* port */) {
     bool _return = false;
     return _return;
   }
 };
 
 typedef struct _RecvCommand_add_measure_group_args__isset {
-  _RecvCommand_add_measure_group_args__isset() : str_addr(false), interval(false) {}
+  _RecvCommand_add_measure_group_args__isset() : str_addr(false), interval(false), port(false) {}
   bool str_addr;
   bool interval;
+  bool port;
 } _RecvCommand_add_measure_group_args__isset;
 
 class RecvCommand_add_measure_group_args {
  public:
 
-  RecvCommand_add_measure_group_args() : str_addr(), interval(0) {
+  RecvCommand_add_measure_group_args() : str_addr(), interval(0), port(0) {
   }
 
   virtual ~RecvCommand_add_measure_group_args() throw() {}
 
   std::string str_addr;
   int32_t interval;
+  int32_t port;
 
   _RecvCommand_add_measure_group_args__isset __isset;
 
@@ -83,11 +85,17 @@ class RecvCommand_add_measure_group_args {
     interval = val;
   }
 
+  void __set_port(const int32_t val) {
+    port = val;
+  }
+
   bool operator == (const RecvCommand_add_measure_group_args & rhs) const
   {
     if (!(str_addr == rhs.str_addr))
       return false;
     if (!(interval == rhs.interval))
+      return false;
+    if (!(port == rhs.port))
       return false;
     return true;
   }
@@ -111,6 +119,7 @@ class RecvCommand_add_measure_group_pargs {
 
   const std::string* str_addr;
   const int32_t* interval;
+  const int32_t* port;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -174,21 +183,23 @@ class RecvCommand_add_measure_group_presult {
 };
 
 typedef struct _RecvCommand_del_measure_group_args__isset {
-  _RecvCommand_del_measure_group_args__isset() : str_addr(false), interval(false) {}
+  _RecvCommand_del_measure_group_args__isset() : str_addr(false), interval(false), port(false) {}
   bool str_addr;
   bool interval;
+  bool port;
 } _RecvCommand_del_measure_group_args__isset;
 
 class RecvCommand_del_measure_group_args {
  public:
 
-  RecvCommand_del_measure_group_args() : str_addr(), interval(0) {
+  RecvCommand_del_measure_group_args() : str_addr(), interval(0), port(0) {
   }
 
   virtual ~RecvCommand_del_measure_group_args() throw() {}
 
   std::string str_addr;
   int32_t interval;
+  int32_t port;
 
   _RecvCommand_del_measure_group_args__isset __isset;
 
@@ -200,11 +211,17 @@ class RecvCommand_del_measure_group_args {
     interval = val;
   }
 
+  void __set_port(const int32_t val) {
+    port = val;
+  }
+
   bool operator == (const RecvCommand_del_measure_group_args & rhs) const
   {
     if (!(str_addr == rhs.str_addr))
       return false;
     if (!(interval == rhs.interval))
+      return false;
+    if (!(port == rhs.port))
       return false;
     return true;
   }
@@ -228,6 +245,7 @@ class RecvCommand_del_measure_group_pargs {
 
   const std::string* str_addr;
   const int32_t* interval;
+  const int32_t* port;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -310,11 +328,11 @@ class RecvCommandClient : virtual public RecvCommandIf {
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
-  bool add_measure_group(const std::string& str_addr, const int32_t interval);
-  void send_add_measure_group(const std::string& str_addr, const int32_t interval);
+  bool add_measure_group(const std::string& str_addr, const int32_t interval, const int32_t port);
+  void send_add_measure_group(const std::string& str_addr, const int32_t interval, const int32_t port);
   bool recv_add_measure_group();
-  bool del_measure_group(const std::string& str_addr, const int32_t interval);
-  void send_del_measure_group(const std::string& str_addr, const int32_t interval);
+  bool del_measure_group(const std::string& str_addr, const int32_t interval, const int32_t port);
+  void send_del_measure_group(const std::string& str_addr, const int32_t interval, const int32_t port);
   bool recv_del_measure_group();
  protected:
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
@@ -366,22 +384,22 @@ class RecvCommandMultiface : virtual public RecvCommandIf {
     ifaces_.push_back(iface);
   }
  public:
-  bool add_measure_group(const std::string& str_addr, const int32_t interval) {
+  bool add_measure_group(const std::string& str_addr, const int32_t interval, const int32_t port) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->add_measure_group(str_addr, interval);
+      ifaces_[i]->add_measure_group(str_addr, interval, port);
     }
-    return ifaces_[i]->add_measure_group(str_addr, interval);
+    return ifaces_[i]->add_measure_group(str_addr, interval, port);
   }
 
-  bool del_measure_group(const std::string& str_addr, const int32_t interval) {
+  bool del_measure_group(const std::string& str_addr, const int32_t interval, const int32_t port) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->del_measure_group(str_addr, interval);
+      ifaces_[i]->del_measure_group(str_addr, interval, port);
     }
-    return ifaces_[i]->del_measure_group(str_addr, interval);
+    return ifaces_[i]->del_measure_group(str_addr, interval, port);
   }
 
 };

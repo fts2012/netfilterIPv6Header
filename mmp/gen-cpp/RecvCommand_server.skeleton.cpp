@@ -22,12 +22,12 @@ class RecvCommandHandler : virtual public RecvCommandIf {
     // Your initialization goes here
   }
 
-  bool add_measure_group(const std::string& str_addr, const int32_t interval) {
+  bool add_measure_group(const std::string& str_addr, const int32_t interval, const int32_t port) {
     // Your implementation goes here
     printf("add_measure_group\n");
   }
 
-  bool del_measure_group(const std::string& str_addr, const int32_t interval) {
+  bool del_measure_group(const std::string& str_addr, const int32_t interval, const int32_t port) {
     // Your implementation goes here
     printf("del_measure_group\n");
   }

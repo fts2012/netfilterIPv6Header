@@ -1,0 +1,9 @@
+1. mmp_ini.cfg initial config of the system in mmp
+2. mmp.sh run this file will start two process to work on mmp
+3. common file is to control the shared memory
+4. deal_message.thrift are used to generate thrift files for send messages to mcs
+5. ip_rule.thrift mmp work as a server to collect add/del information from mcs
+6. command_receiver is the same as ip_rule
+7. catch_pkt is the same as deal_message
+8. send_measure_info is a part of deal_message which is used to send message to mcs after catching them.
+9. shm2 is used to generate key for share memory

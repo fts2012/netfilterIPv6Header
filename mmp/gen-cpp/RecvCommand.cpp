@@ -44,6 +44,14 @@ uint32_t RecvCommand_add_measure_group_args::read(::apache::thrift::protocol::TP
           xfer += iprot->skip(ftype);
         }
         break;
+      case 3:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->port);
+          this->__isset.port = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -68,6 +76,10 @@ uint32_t RecvCommand_add_measure_group_args::write(::apache::thrift::protocol::T
   xfer += oprot->writeI32(this->interval);
   xfer += oprot->writeFieldEnd();
 
+  xfer += oprot->writeFieldBegin("port", ::apache::thrift::protocol::T_I32, 3);
+  xfer += oprot->writeI32(this->port);
+  xfer += oprot->writeFieldEnd();
+
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -83,6 +95,10 @@ uint32_t RecvCommand_add_measure_group_pargs::write(::apache::thrift::protocol::
 
   xfer += oprot->writeFieldBegin("interval", ::apache::thrift::protocol::T_I32, 2);
   xfer += oprot->writeI32((*(this->interval)));
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("port", ::apache::thrift::protocol::T_I32, 3);
+  xfer += oprot->writeI32((*(this->port)));
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -222,6 +238,14 @@ uint32_t RecvCommand_del_measure_group_args::read(::apache::thrift::protocol::TP
           xfer += iprot->skip(ftype);
         }
         break;
+      case 4:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->port);
+          this->__isset.port = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -246,6 +270,10 @@ uint32_t RecvCommand_del_measure_group_args::write(::apache::thrift::protocol::T
   xfer += oprot->writeI32(this->interval);
   xfer += oprot->writeFieldEnd();
 
+  xfer += oprot->writeFieldBegin("port", ::apache::thrift::protocol::T_I32, 4);
+  xfer += oprot->writeI32(this->port);
+  xfer += oprot->writeFieldEnd();
+
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -261,6 +289,10 @@ uint32_t RecvCommand_del_measure_group_pargs::write(::apache::thrift::protocol::
 
   xfer += oprot->writeFieldBegin("interval", ::apache::thrift::protocol::T_I32, 2);
   xfer += oprot->writeI32((*(this->interval)));
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("port", ::apache::thrift::protocol::T_I32, 4);
+  xfer += oprot->writeI32((*(this->port)));
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -364,13 +396,13 @@ uint32_t RecvCommand_del_measure_group_presult::read(::apache::thrift::protocol:
   return xfer;
 }
 
-bool RecvCommandClient::add_measure_group(const std::string& str_addr, const int32_t interval)
+bool RecvCommandClient::add_measure_group(const std::string& str_addr, const int32_t interval, const int32_t port)
 {
-  send_add_measure_group(str_addr, interval);
+  send_add_measure_group(str_addr, interval, port);
   return recv_add_measure_group();
 }
 
-void RecvCommandClient::send_add_measure_group(const std::string& str_addr, const int32_t interval)
+void RecvCommandClient::send_add_measure_group(const std::string& str_addr, const int32_t interval, const int32_t port)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("add_measure_group", ::apache::thrift::protocol::T_CALL, cseqid);
@@ -378,6 +410,7 @@ void RecvCommandClient::send_add_measure_group(const std::string& str_addr, cons
   RecvCommand_add_measure_group_pargs args;
   args.str_addr = &str_addr;
   args.interval = &interval;
+  args.port = &port;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -423,13 +456,13 @@ bool RecvCommandClient::recv_add_measure_group()
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "add_measure_group failed: unknown result");
 }
 
-bool RecvCommandClient::del_measure_group(const std::string& str_addr, const int32_t interval)
+bool RecvCommandClient::del_measure_group(const std::string& str_addr, const int32_t interval, const int32_t port)
 {
-  send_del_measure_group(str_addr, interval);
+  send_del_measure_group(str_addr, interval, port);
   return recv_del_measure_group();
 }
 
-void RecvCommandClient::send_del_measure_group(const std::string& str_addr, const int32_t interval)
+void RecvCommandClient::send_del_measure_group(const std::string& str_addr, const int32_t interval, const int32_t port)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("del_measure_group", ::apache::thrift::protocol::T_CALL, cseqid);
@@ -437,6 +470,7 @@ void RecvCommandClient::send_del_measure_group(const std::string& str_addr, cons
   RecvCommand_del_measure_group_pargs args;
   args.str_addr = &str_addr;
   args.interval = &interval;
+  args.port = &port;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -524,7 +558,7 @@ void RecvCommandProcessor::process_add_measure_group(int32_t seqid, ::apache::th
 
   RecvCommand_add_measure_group_result result;
   try {
-    result.success = iface_->add_measure_group(args.str_addr, args.interval);
+    result.success = iface_->add_measure_group(args.str_addr, args.interval, args.port);
     result.__isset.success = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
@@ -578,7 +612,7 @@ void RecvCommandProcessor::process_del_measure_group(int32_t seqid, ::apache::th
 
   RecvCommand_del_measure_group_result result;
   try {
-    result.success = iface_->del_measure_group(args.str_addr, args.interval);
+    result.success = iface_->del_measure_group(args.str_addr, args.interval, args.port);
     result.__isset.success = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {

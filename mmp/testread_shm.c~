@@ -12,7 +12,7 @@ main(int argc, char** argv)
 	int shm_id,i;
 	key_t key;
 	people *p_map;
-	char* name = "/dev/shm/myshm2";
+	char* name = "./shm2";
 	key = ftok(name,0);
 	if(key == -1)
 		perror("ftok error");

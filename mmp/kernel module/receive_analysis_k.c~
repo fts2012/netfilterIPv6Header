@@ -3,7 +3,6 @@
 * which analysis the specified packets
 * work in mmp (measurement point)
 * because of the capture task is done by libpcap, so there is no need to use netlink to communicate
-* no need to use common too
 */
 
 #include <linux/netfilter.h>

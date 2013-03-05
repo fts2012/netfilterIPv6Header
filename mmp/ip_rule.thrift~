@@ -11,8 +11,8 @@
  */
 service RecvCommand{
 
-    bool add_measure_group(1: string str_addr,2: i32 interval);
+    bool add_measure_group(1: string str_addr,2: i32 interval, 3:i32 port);
 
-    bool del_measure_group(1: string str_addr,2: i32 interval);
+    bool del_measure_group(1: string str_addr,2: i32 interval, 4:i32 port);
 
 }

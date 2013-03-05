@@ -18,12 +18,13 @@ int create_shm(const char *shm_name, int size)
 {
     int shm_id;
     key_t key;    
-    key = ftok(shm_name,0);
+   key = ftok(shm_name,0);
     size_shm = size;
     if(key == -1)
 		return 0;
-key =0x000010221;//why use this the segment fault won't happen while ftok happens
-	shm_id = shmget(key,size_shm*sizeof(ip_node),IPC_CREAT|0777);	
+
+    //key =0x000010231;//why use this the segment fault won't happen while ftok happens
+	shm_id = shmget(key,size_shm*sizeof(ip_node)*2,IPC_CREAT|0644);
     if(shm_id == -1)
 	{
 		printf("shmget error");
@@ -31,8 +32,8 @@ key =0x000010221;//why use this the segment fault won't happen while ftok happen
 	}
     
     //set 0
-    node_ptr = shmat(shm_id,NULL,0);
-    memset(node_ptr, 0 ,size_shm*sizeof(ip_node));
+    node_ptr = (ip_node *)shmat(shm_id,NULL,0);
+    memset(node_ptr, 0 ,size_shm*sizeof(ip_node)*2);
 
     return shm_id;
 }
