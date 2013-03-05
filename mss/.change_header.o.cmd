@@ -1,1 +1,0 @@
-cmd_/home/fts/repository/netfilterIPv6Header/mss/change_header.o := ld -m elf_i386   -r -o /home/fts/repository/netfilterIPv6Header/mss/change_header.o /home/fts/repository/netfilterIPv6Header/mss/nf_change_header.o /home/fts/repository/netfilterIPv6Header/mss/common.o 
