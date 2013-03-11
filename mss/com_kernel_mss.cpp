@@ -20,7 +20,7 @@
  * ip=xxxx&interval=xx
  * return 0 means error
  */
-int send_msg_to_kernel(char* cmd)
+int send_msg_to_kernel(const  char* cmd)
 {
     int state;
     struct sockaddr_nl src_addr, dest_addr;
@@ -70,7 +70,7 @@ int send_msg_to_kernel(char* cmd)
     nlh->nlmsg_pid = getpid();//sending process prot id
     nlh->nlmsg_flags = 0;
 
-    strcpy(NLMSG_DATA(nlh), cmd);
+    strcpy((char*)NLMSG_DATA(nlh), cmd);
 
     iov.iov_base = (void *)nlh;
     iov.iov_len = NLMSG_SPACE(MAX_PAYLOAD);

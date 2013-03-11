@@ -23,8 +23,30 @@
 #include <string>
 #include <iostream>
 
+class MessageHandler{
 
-int sendmsg(const std::string& msg);
+public:
+	MessageHandler(const std::string mcs_ip, int port );
+
+	MessageHandler(const MessageHandler& mh);
+	
+	MessageHandler& operator=(const MessageHandler &);
+	
+	int sendmsg(const std::string& msg);
+
+	void registe_group(const std::string name, const std::string deviceIp,
+			std::string groupIp);
+
+	void registe_device(const std::string name, const std::string deviceIp,
+			int deviceType, const std::string relateIp, int listenPort);
+
+private:
+	std::string mcs_ip;
+
+	int port;
+};
+
+
 
 
 #endif

@@ -1,6 +1,6 @@
 /* UNIX Network Programming*/
 
-#include	<net/if.h>
+#include <mcast.h>
 
 int
 mcast_join(int sockfd, const SA *sa, socklen_t salen,
@@ -38,7 +38,6 @@ doioctl:
 /* end mcast_join1 */
 
 /* include mcast_join2 */
-#ifdef	IPV6
 	case AF_INET6: {
 		struct ipv6_mreq	mreq6;
 
@@ -59,7 +58,6 @@ doioctl:
 		return(setsockopt(sockfd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP,
 						  &mreq6, sizeof(mreq6)));
 	}
-#endif
 
 	default:
 		errno = EPROTONOSUPPORT;
@@ -92,7 +90,6 @@ mcast_leave(int sockfd, const SA *sa, socklen_t salen)
 						  &mreq, sizeof(mreq)));
 	}
 
-#ifdef	IPV6
 	case AF_INET6: {
 		struct ipv6_mreq	mreq6;
 
@@ -103,7 +100,6 @@ mcast_leave(int sockfd, const SA *sa, socklen_t salen)
 		return(setsockopt(sockfd, IPPROTO_IPV6, IPV6_DROP_MEMBERSHIP,
 						  &mreq6, sizeof(mreq6)));
 	}
-#endif
 
 	default:
 		errno = EPROTONOSUPPORT;

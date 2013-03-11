@@ -31,6 +31,8 @@ char device_ip[INET6_ADDRSTRLEN];
 /*share memory id*/
 int shm_id =0;
 
+/* send message */
+MessageHandler *mh =NULL;
 /**
  * filte the packets and send the informaiton to mcs
  * device type, device ip, send time, recv time, seq, group ip;
@@ -66,7 +68,7 @@ void deal_with_pkt(u_char *arg, const struct pcap_pkthdr *pkthdr,
 			cnt++;
 		} else {
 			// when the packets size is enough then send it to mcs
-			sendmsg(newpkt);
+			mh->sendmsg(newpkt);
 			printf("content is :%s\n", newpkt);
 
 			//clear for next measure info packet
@@ -107,10 +109,16 @@ int main(int argc, char **argv) {
 		return (EXIT_FAILURE);
 	}
 	try {
-		strcpy(device_ip, cfg.lookup("local_ip").c_str());
+		strcpy(device_ip, cfg.lookup("device_ip").c_str());
 		strcpy(file_shm, cfg.lookup("file_shm").c_str());
 		size_of_shm = cfg.lookup("size_of_shm");
 		//ifname = cfg.lookup("iterface_name");
+
+		string mcs_ip = cfg.lookup("mcs_ip");
+		int mcs_port = cfg.lookup("mcs_port");
+		MessageHandler temph(mcs_ip, mcs_port);
+		mh = new MessageHandler(mcs_ip, mcs_port);
+
 	} catch (const SettingNotFoundException &nfex) {
 		std::cerr << "No 'name' setting in configuration file." << std::endl;
 	}

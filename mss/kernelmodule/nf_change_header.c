@@ -189,10 +189,10 @@ ip6_reconstruct_ori_pkt(struct sk_buff *skb)
 	   sample_seq=0;
 	}
 	ip6_dst->ip6d_ssn = htonl(sample_seq);
-for(i = skb->data; i <= skb->data + skb->len -4; i = i+4)
-{
-    PRINT("%x",htonl(*(long *)(i)));
-}
+	for(i = skb->data; i <= skb->data + skb->len -4; i = i+4)
+	{
+		PRINT("%x",htonl(*(long *)(i)));
+	}
 
 	return skb;
 }
@@ -288,13 +288,9 @@ ip6_multi_modify(unsigned int hooknum,
 if(ip6_hdr->version == 6)
 {
     struct in6_addr destip = ip6_hdr->daddr;//destination ip
-    //TODO:use module_para or /proc to replace here
-//PRINT("DEST ip : %x,%x",(&destip)->s6_addr[0],(&destip)->s6_addr[1]);
-    if(destip.s6_addr[0] == 0xff && destip.s6_addr[1] == 0x15)
-    //FIXME:find where ipv6_addr_is_multicast belongs to
-    //if(ipv6_addr_is_multicast(&ip6_hdr->daddr))
+    if(match_rule(&ipaddrs, &destip))
     {
-//FIXME:The size of tail room
+    	//FIXME:The size of tail room
         /*
         if(skb_tailroom(sk) >= 40)
         {

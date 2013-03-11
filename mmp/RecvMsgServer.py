@@ -50,7 +50,7 @@ class RecvHandler:
 handler = RecvHandler()
 processor = RecvMessage.Processor(handler)
 
-transport = TSocket.TServerSocket("localhost",9090)
+transport = TSocket.TServerSocket("localhost",6542)
 pfactory = TBinaryProtocol.TBinaryProtocolFactory()
 tfactory = TTransport.TBufferedTransportFactory()
 #server = TServer.TThreadedServer(processor, transport, tfactory, pfactory)

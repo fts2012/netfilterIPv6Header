@@ -1,0 +1,5 @@
+1. mss_ini.cfg initial config of the system in mss
+2. send_measure_info include those functions that register to mcs
+2. communicate_mss work as server that recive mcs's command
+3. com_kernel_mss is to communicate with kernel
+4. 

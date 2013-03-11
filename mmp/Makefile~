@@ -24,20 +24,23 @@ INCS_DIRS  =-I${USR_DIR}/include -I${THRIFT_DIR}/include/thrift
 LIBS_DIRS  =-L${USR_DIR}/lib -L${USR_DIR}/${THRIFT_VER}/lib
 CPP_DEFS   =-D=HAVE_NETINET_IN_H 
 CPP_OPTS   =-Wall -O2
-LIBS       =-lthrift
+LIBS       =-lpcap -lconfig++  -lthrift
 
 GEN_SRC    = ./gen-cpp/deal_message_types.cpp \
-             ./gen-cpp/RecvMessage.cpp
+             ./gen-cpp/RecvMessage.cpp \
+           ./gen-cpp/ip_rule_constants.cpp \
+           ./gen-cpp/RecvCommand.cpp
 GEN_INC    = -I./gen-cpp
 
 #default: server client
-default: client
+default:  client server
 #server: 
 #	g++ ${CPP_OPTS} ${CPP_DEFS} -o CppServer ${GEN_INC} ${INCS_DIRS} CppServer.cpp ${GEN_SRC} ${LIBS_DIRS} ${LIBS}
+server:
+	g++ ${CPP_OPTS} ${CPP_DEFS} -o command_receiver ${GEN_INC} ${INCS_DIRS} common.c send_measure_info.cpp command_receiver.cpp ${GEN_SRC} ${LIBS_DIRS} ${LIBS} 
 
 client: 
-	g++ ${CPP_OPTS} ${CPP_DEFS} -o CppClient ${GEN_INC} ${INCS_DIRS} send_measure_info.h catch_pkt.cpp ${GEN_SRC} ${LIBS_DIRS} ${LIBS} -lpcap -lpthread
-
+	g++ ${CPP_OPTS} ${CPP_DEFS} -o catch_packets ${GEN_INC} ${INCS_DIRS} common.c send_measure_info.cpp catch_pkt.cpp ${GEN_SRC} ${LIBS_DIRS} ${LIBS}
 
 clean:
-	$(RM) -r CppClient 
+	$(RM) -r catch_packets  command_receiver

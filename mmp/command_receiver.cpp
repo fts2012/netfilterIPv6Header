@@ -20,6 +20,7 @@
 #include <libconfig.h++> //libpconfig
 #include <net/if.h>//if_nametoindex(char *)
 #include "./gen-cpp/RecvCommand.h"
+#include "send_measure_info.h"
 
 using namespace std;
 using namespace apache::thrift;
@@ -125,6 +126,10 @@ public:
 		}
 		return true;
 	}
+	int32_t is_alive() {
+
+	    return 1;
+	  }
 
 protected:
 	map<string, int> sockfd_addr;
@@ -158,6 +163,16 @@ int main(int argc, char **argv) {
 		port = cfg.lookup("mcs_port");
 		string ifname = cfg.lookup("iterface_name");
 
+
+		// register to the mcs
+		string mcs_ip = cfg.lookup("mcs_ip");
+		string device_ip = cfg.lookup("device_ip");
+		string device_name = cfg.lookup("device_name");
+		string relateIp =  cfg.lookup("relate_ip");
+		int device_port = cfg.lookup("listen_port");
+			MessageHandler mh(mcs_ip, port);
+			mh.registe_device(device_name,device_ip,2,relateIp,device_port);
+
 		//create share memory
 		int shm_id = create_shm(file_shm, size_of_shm);
 		if (shm_id == 0)
@@ -169,34 +184,12 @@ int main(int argc, char **argv) {
 		shared_ptr<RecvCommandHandler> handler(
 				new RecvCommandHandler(shm_id, ifname));
 		shared_ptr<TProcessor> processor(new RecvCommandProcessor(handler));
-		shared_ptr<TServerTransport> serverTransport(new TServerSocket(port));
+		shared_ptr<TServerTransport> serverTransport(new TServerSocket(device_port));
 		shared_ptr<TTransportFactory> transportFactory(
 				new TBufferedTransportFactory());
 
 		TSimpleServer server(processor, serverTransport, transportFactory,
 				protocolFactory);
-
-		/**
-		 * Or you could do one of these
-
-		 shared_ptr<ThreadManager> threadManager =
-		 ThreadManager::newSimpleThreadManager(workerCount);
-		 shared_ptr<PosixThreadFactory> threadFactory =
-		 shared_ptr<PosixThreadFactory>(new PosixThreadFactory());
-		 threadManager->threadFactory(threadFactory);
-		 threadManager->start();
-		 TThreadPoolServer server(processor,
-		 serverTransport,
-		 transportFactory,
-		 protocolFactory,
-		 threadManager);
-
-		 TThreadedServer server(processor,
-		 serverTransport,
-		 transportFactory,
-		 protocolFactory);
-
-		 */
 
 		printf("Starting the server...\n");
 		server.serve();

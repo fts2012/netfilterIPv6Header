@@ -37,7 +37,7 @@ default:  client server
 #server: 
 #	g++ ${CPP_OPTS} ${CPP_DEFS} -o CppServer ${GEN_INC} ${INCS_DIRS} CppServer.cpp ${GEN_SRC} ${LIBS_DIRS} ${LIBS}
 server:
-	g++ ${CPP_OPTS} ${CPP_DEFS} -o command_receiver ${GEN_INC} ${INCS_DIRS} common.c command_receiver.cpp ${GEN_SRC} ${LIBS_DIRS} ${LIBS} 
+	g++ ${CPP_OPTS} ${CPP_DEFS} -o command_receiver ${GEN_INC} ${INCS_DIRS} common.c send_measure_info.cpp command_receiver.cpp ${GEN_SRC} ${LIBS_DIRS} ${LIBS} 
 
 client: 
 	g++ ${CPP_OPTS} ${CPP_DEFS} -o catch_packets ${GEN_INC} ${INCS_DIRS} common.c send_measure_info.cpp catch_pkt.cpp ${GEN_SRC} ${LIBS_DIRS} ${LIBS}
