@@ -42,12 +42,13 @@ int match_rule(const ip_list ipaddrs, struct in6_addr * check_ip)
     ip_node node = ipaddrs->head;
     while(node != NULL)
     {
-printk("match_rule....in");
         /*if(ipaddrs->addr.u6_addr32[0] == check_ip.u6_addr32[0] &&
             ipaddrs->addr.u6_addr32[1] == check_ip.u6_addr32[1] &&
             ipaddrs->addr.u6_addr32[2] == check_ip.u6_addr32[2] &&
             ipaddrs->addr.u6_addr32[3] == check_ip.u6_addr32[3] )
             return true;*/
+    	//TODO
+    	printk("ipaddr:%x=?%x  ",node->addr.s6_addr32[0],check_ip->s6_addr32[0]);
         //the check_ip's type is in6_addr*
         if(memcmp(&node->addr,check_ip,sizeof(check_ip)) == 0)
             return 1;
@@ -63,7 +64,6 @@ printk("match_rule....in");
 void add_rule(ip_list *ipaddrs, struct in6_addr * check_ip)
 {
     //allocate memory
-    //ip_node node = (ip_node)malloc(sizeof(struct _ip_node));
     ip_node node = (ip_node)kmalloc(sizeof(struct _ip_node),GFP_KERNEL);
     //copy data,because the type is pointer
     memcpy(&node->addr,check_ip,sizeof(check_ip));
@@ -77,7 +77,7 @@ void add_rule(ip_list *ipaddrs, struct in6_addr * check_ip)
         init(ipaddrs);
         (*ipaddrs)->head = node;
         (*ipaddrs)->tail = node;
-    }    
+    }
     else
     {
         (*ipaddrs)->tail->next = node;

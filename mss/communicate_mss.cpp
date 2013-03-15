@@ -16,6 +16,7 @@
 #include "com_kernel_mss.h"
 #include "send_measure_info.h"
 #include <string>
+#include<arpa/inet.h>
 
 using namespace ::apache::thrift;
 using namespace ::apache::thrift::protocol;
@@ -36,7 +37,7 @@ public:
 			const int32_t port) {
 
 		char buffer[72];
-		sprintf(buffer, "cmd=ADD&ip=%s&interval=%d", str_addr.c_str(), interval);
+		sprintf(buffer, "cmd=ADD ip=%s interval=%d", str_addr.c_str(), interval);
 		int rtn = send_msg_to_kernel(buffer);
 
 		return rtn;
@@ -45,7 +46,7 @@ public:
 	bool del_measure_group(const std::string& str_addr, const int32_t interval,
 			const int32_t port) {
 		char buffer[72];
-		sprintf(buffer, "cmd=DEL&ip=%s&interval=%d", str_addr.c_str(), interval);
+		sprintf(buffer, "cmd=DEL ip=%s interval=%d", str_addr.c_str(), interval);
 
 		int rtn = send_msg_to_kernel(buffer);
 
@@ -89,6 +90,7 @@ int main(int argc, char **argv) {
 		//FIXME What if error happen when regist
 		mh.registe_device(device_name, device_ip, 1, "", device_port);
 
+
 		shared_ptr<RecvCommandHandler> handler(new RecvCommandHandler());
 		shared_ptr<TProcessor> processor(new RecvCommandProcessor(handler));
 		shared_ptr<TServerTransport> serverTransport(new TServerSocket(device_port));
@@ -97,6 +99,16 @@ int main(int argc, char **argv) {
 
 		TSimpleServer server(processor, serverTransport, transportFactory,
 				protocolFactory);
+		//TODO TEST
+		struct in6_addr s; // IPv6地址结构体
+		inet_pton(AF_INET6, "ff15::1", (void *) &s);
+		char dst[60];
+		inet_ntop(AF_INET6, (void *) &s, dst, sizeof(s));
+		//
+		char  msg[100];
+sprintf(msg, "cmd=ADD ip=%s interval=10", dst);
+		//send_msg_to_kernel("cmd=ADD ip=ff15::1 interval=10");
+		send_msg_to_kernel(msg);
 
 		printf("Starting the mss server...\n");
 		server.serve();

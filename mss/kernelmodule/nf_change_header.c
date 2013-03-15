@@ -114,11 +114,14 @@ void nl_data_ready(struct sk_buff *__skb)
         printk("Message received:%s\n",str) ;
         sscanf(str, "cmd=%s ip=%s interval=%d", command, ipaddr,&interval);
         memcpy(&recvaddr,ipaddr,sizeof(recvaddr));
-//convert ipaddr to struct in6_addr
+        //TODO 比较出问题，用ip格式和string比较
+        print_6addr(&recvaddr);
+//convert ipaddr to struct in6_alddr
 
 // the comand format
 // ADD>x:x:x:x
 // DEL>x:x:x:x
+        //
         if(strcmp(command,"ADD")==0)
          {
 
@@ -291,14 +294,14 @@ if(ip6_hdr->version == 6)
     if(match_rule(&ipaddrs, &destip))
     {
     	//FIXME:The size of tail room
-        /*
+
         if(skb_tailroom(sk) >= 40)
         {
             PRINT("tailroom is enough\n");
             skb = ip6_reconstruct_ori_pkt(skb);
         }
         else
-        {*/
+        {
             if(ip6_hdr->nexthdr == 0x11){
         
         //if(ip6_hdr->nexthdr != 0x3c){
@@ -312,7 +315,7 @@ if(ip6_hdr->version == 6)
         }
         //        PRINT("not enough\n");
         //    }
-        //}
+        }
 //print before change
 //skb = ip6_encapsulate_pkt_t(skb);
         if(skb == NULL)
