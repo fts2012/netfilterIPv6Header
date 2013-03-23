@@ -80,7 +80,7 @@ public:
 		//mreq.ipv6mr_multiaddr.in6_addr=inet_addr(Receiver::jion_group);
 		inet_pton(AF_INET6, addr.c_str(), &mreq.ipv6mr_multiaddr);
 		//	memcpy(&mreq.ipv6mr_multiaddr, &addr.sin6_addr,
-		//			sizeof(struct in6_addr));
+		//			sizeof(struct in6_aaddrddr));
 
 		mreq.ipv6mr_interface = if_nametoindex("eth0");
 		/* use setsockopt() to request that the kernel join a multicast group */
@@ -94,6 +94,8 @@ public:
 		sockfd_addr[addr] = rc_fd;
 		//add it to the rule
 		add_rule(shm_id, &s);
+		//TODO PRINT FOR DEBUG
+		cout<<addr <<" added!"<<endl;
 		return true;
 	}
 
@@ -124,6 +126,10 @@ public:
 			//5. erase the fd and address
 			sockfd_addr.erase(addr);
 		}
+		//delete it from the rule
+		del_rule(shm_id, &s);
+		//TODO PRINT FOR DEBUG
+		cout<<addr <<" deleted!"<<endl;
 		return true;
 	}
 	int32_t is_alive() {
@@ -171,7 +177,7 @@ int main(int argc, char **argv) {
 		string relateIp =  cfg.lookup("relate_ip");
 		int device_port = cfg.lookup("listen_port");
 			MessageHandler mh(mcs_ip, port);
-			mh.registe_device(device_name,device_ip,2,relateIp,device_port);
+		mh.registe_device(device_name,device_ip,2,relateIp,device_port);
 
 		//create share memory
 		int shm_id = create_shm(file_shm, size_of_shm);

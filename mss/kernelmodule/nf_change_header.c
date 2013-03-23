@@ -20,6 +20,8 @@
 #include <net/ipv6.h>
 #include <linux/time.h>
 
+#include <linux/jiffies.h> //interval
+
 #include <asm/byteorder.h>
 
 
@@ -54,9 +56,19 @@ struct sock *nl_sk = NULL;
 /* the process id of userspace process*/
 int pid;
 
-
 /* store the ip addreses which will be dealed */
 ip_list  ipaddrs = NULL;
+
+/* measure frequency do measure everty x time*/
+unsigned long time_cycle =0;
+/* packets' count of reconstructed */
+int packets = 5;
+/*in a measure cycle, num of packets have been caught*/
+int caught_size = 0;
+/* interval time seconds*/
+int interval = 0;
+
+
 /**
  * Send message to userspace
  */
@@ -100,9 +112,7 @@ void nl_data_ready(struct sk_buff *__skb)
     char str[100];
     //struct completion cmpl;
     int i=10;
-    int interval = 0;
-    char command[6] ={'\0'},ipaddr[60]={'\0'};
-    struct in6_addr recvaddr;
+    char command[6] ={'\0'},ipaddr[INET6_ADDRSTRLEN]={'\0'};
     printk("nl_data_ready......in\n");
 
     skb = skb_get (__skb);
@@ -113,10 +123,9 @@ void nl_data_ready(struct sk_buff *__skb)
         memcpy(str, NLMSG_DATA(nlh), sizeof(str));
         printk("Message received:%s\n",str) ;
         sscanf(str, "cmd=%s ip=%s interval=%d", command, ipaddr,&interval);
-        memcpy(&recvaddr,ipaddr,sizeof(recvaddr));
-        //TODO 比较出问题，用ip格式和string比较
-        print_6addr(&recvaddr);
-//convert ipaddr to struct in6_alddr
+
+        //interval time
+        time_cycle = jiffies + interval * HZ;
 
 // the comand format
 // ADD>x:x:x:x
@@ -125,11 +134,11 @@ void nl_data_ready(struct sk_buff *__skb)
         if(strcmp(command,"ADD")==0)
          {
 
-              add_rule(&ipaddrs, &recvaddr);
+              add_rule(&ipaddrs, ipaddr);
          }
          else if(strcmp(command,"DEL")==0)
          {
-              del_rule(&ipaddrs, &recvaddr);
+              del_rule(&ipaddrs, ipaddr);
          }
 
          pid = nlh->nlmsg_pid; //the source process id
@@ -283,6 +292,7 @@ ip6_multi_modify(unsigned int hooknum,
 {
     struct sk_buff *sk = skb;
 	struct ipv6hdr *ip6_hdr = ipv6_hdr(skb);//header
+	char destipadd[INET6_ADDRSTRLEN];
 
 //because nh only supportted in kernels below 2.6
 //after 2.6, it often use network_header to express nh
@@ -291,43 +301,58 @@ ip6_multi_modify(unsigned int hooknum,
 if(ip6_hdr->version == 6)
 {
     struct in6_addr destip = ip6_hdr->daddr;//destination ip
-    if(match_rule(&ipaddrs, &destip))
+    sprintf(destipadd,"%pI6c", &ip6_hdr->daddr);
+    if(ipaddrs!=NULL && match_rule(ipaddrs, destipadd))
     {
-    	//FIXME:The size of tail room
+    	// if before next interval do nothing, else reconstrcut NUM packets
+    	if(!time_before(jiffies, time_cycle))
+    	{
+    		//
+    		if(caught_size == packets )
+    		{
+    			//for next measure catch cycle
+    			caught_size =0;
+    			time_cycle = jiffies + interval * HZ;
+    		}
+    		else
+    		{
+    		 	//FIXME:The size of tail room
 
-        if(skb_tailroom(sk) >= 40)
-        {
-            PRINT("tailroom is enough\n");
-            skb = ip6_reconstruct_ori_pkt(skb);
-        }
-        else
-        {
-            if(ip6_hdr->nexthdr == 0x11){
-        
-        //if(ip6_hdr->nexthdr != 0x3c){
-            //if the next header is no 60 that is this packet was not reconstructed
-            skb = ip6_reconstruct_copy_pkt(skb);
-            ip_route_me_harder(skb,RTN_LOCAL);//ip6_route_me_harder
-            okfn(skb);  
-            //drop the old skb
-            //TODO:WHAT WILL DROP?
-            return NF_ACCEPT;
-        }
-        //        PRINT("not enough\n");
-        //    }
-        }
-//print before change
-//skb = ip6_encapsulate_pkt_t(skb);
-        if(skb == NULL)
-        {
-            PRINT("Allocate new sk_buffer error!\n");
-            return NF_STOLEN;
-        }
+    		        if(skb_tailroom(sk) >= 40)
+    		        {
+    		        	if(ip6_hdr->nexthdr == 0x11)
+    		        	{
+    		        		//deal with those ip packets which send in udp
+    		            PRINT("tailroom is enough\n");
+    		            skb = ip6_reconstruct_ori_pkt(skb);
+    		        	}
+    		        }
+    		        else
+    		        {
+    		            if(ip6_hdr->nexthdr == 0x11)
+    		            {
+
+    		            skb = ip6_reconstruct_copy_pkt(skb);
+    		            ip_route_me_harder(skb,RTN_LOCAL);//ip6_route_me_harder
+    		            okfn(skb);
+    		            //drop the old skb
+    		            //TODO:WHAT WILL DROP?
+    		            	return NF_ACCEPT;
+    		            }
+
+    		        }
+
+    		        if(skb == NULL)
+    		        {
+    		            PRINT("Allocate new sk_buffer error!\n");
+    		            return NF_STOLEN;
+    		        }
+
+    			caught_size ++;
+    		}
+    	}
 
 
-        if(!skb)
-            return NF_STOLEN;
-        //print_6addr(&ip6_hdr->daddr);
     }
 /*
     else

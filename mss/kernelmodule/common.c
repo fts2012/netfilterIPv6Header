@@ -37,20 +37,15 @@ void init(ip_list *list)
     }
     return 0;
 }*/
-int match_rule(const ip_list ipaddrs, struct in6_addr * check_ip)
+//int match_rule(const ip_list ipaddrs, struct in6_addr * check_ip)
+int match_rule(const ip_list ipaddrs, char * check_ip)
 {
     ip_node node = ipaddrs->head;
     while(node != NULL)
     {
-        /*if(ipaddrs->addr.u6_addr32[0] == check_ip.u6_addr32[0] &&
-            ipaddrs->addr.u6_addr32[1] == check_ip.u6_addr32[1] &&
-            ipaddrs->addr.u6_addr32[2] == check_ip.u6_addr32[2] &&
-            ipaddrs->addr.u6_addr32[3] == check_ip.u6_addr32[3] )
-            return true;*/
-    	//TODO
-    	printk("ipaddr:%x=?%x  ",node->addr.s6_addr32[0],check_ip->s6_addr32[0]);
-        //the check_ip's type is in6_addr*
-        if(memcmp(&node->addr,check_ip,sizeof(check_ip)) == 0)
+    	printk("ipaddrs:%s ==? %s  ",node->addr, check_ip);
+    	// if find return 1
+        if(strncmp(node->addr,check_ip,sizeof(check_ip)) == 0)
             return 1;
         node = node->next;
     }
@@ -60,13 +55,13 @@ int match_rule(const ip_list ipaddrs, struct in6_addr * check_ip)
 /*
  *ADD the if it match the rull
  */
-//void add_rule(ip_list *ipaddrs, char* check_ip)
-void add_rule(ip_list *ipaddrs, struct in6_addr * check_ip)
+void add_rule(ip_list *ipaddrs, char* check_ip)
+//void add_rule(ip_list *ipaddrs, struct in6_addr * check_ip)
 {
     //allocate memory
     ip_node node = (ip_node)kmalloc(sizeof(struct _ip_node),GFP_KERNEL);
     //copy data,because the type is pointer
-    memcpy(&node->addr,check_ip,sizeof(check_ip));
+    strncpy(node->addr,check_ip,sizeof(check_ip));
 //    node->addr = check_ip;
     //memcpy(check_ip, node->addr,sizeof());
 
@@ -90,33 +85,30 @@ void add_rule(ip_list *ipaddrs, struct in6_addr * check_ip)
 /*
  *DEL the if it match the rull
  */
-//void del_rule(ip_list *ipaddrs, char* check_ip)
-void del_rule(ip_list *ipaddrs, struct in6_addr * check_ip)
+void del_rule(ip_list *ipaddrs, char* check_ip)
+//void del_rule(ip_list *ipaddrs, struct in6_addr * check_ip)
 {
     ip_node node = (*ipaddrs)->head;
     ip_node pre = (*ipaddrs)->head;
     while(node != NULL)
     {
         //if find, only 1
-        if(memcmp(&node->addr,check_ip,sizeof(node->addr)) == 0)
+        if(strncmp(node->addr,check_ip,sizeof(node->addr)) == 0)
         {
             if(node == (*ipaddrs)->head)
             {
                 (*ipaddrs)->head = node->next;
-//free(node->addr);
                 kfree(node);//free the node here will free 
             }
             else if(node == (*ipaddrs)->tail)
             {
                 (*ipaddrs)->tail = pre;
                 pre->next = NULL;
-//free(node->addr);
                 kfree(node);
             }
             else
             {
                 pre->next = node->next;
-//free(node->addr);
                 kfree(node);
             }
             (*ipaddrs)->count --;

@@ -48,28 +48,33 @@ void deal_with_pkt(u_char *arg, const struct pcap_pkthdr *pkthdr,
 	char item[187];
 	char addr[INET6_ADDRSTRLEN];
 
-
+//cout<<ipv6_hdr->ip6_nxt<<endl;
 	//if match rules store and transmit the content
 	//if(match ip rule) and destination header
 //    if(destip.s6_addr[0] == 0xff && destip.s6_addr[1] == 0x15 && ipv6_hdr->ip6_ctlun.ip6_un1.ip6_un1_nxt == 60)
-	if (match_rule(shm_id, &destip)) {
-
+	if (ipv6_hdr->ip6_ctlun.ip6_un1.ip6_un1_nxt == 60 && match_rule(shm_id, &destip)) {
 		nxthdr =  (struct ip6_dst_hdr *)(packet + 40 + ETH_SIZE);
 		//1,2001:da9:2324:1234:1243::1,12345678912134567,12345678912134567,555555,ff15:1234::2;
 		//type, device ip, send ts ,recv ts, sequence, group ip
 		inet_ntop(AF_INET6, &destip, addr, sizeof(addr));
 
-		sprintf(item, "%s,%s,%ld:%ld,%ld:%ld,%d,%s;", DEVICE_TYPE, addr,
-				nxthdr->ip6d_sec, nxthdr->ip6d_usec, (pkthdr->ts).tv_sec,
-				(pkthdr->ts).tv_usec, nxthdr->ip6d_ssn, device_ip);
+//		sprintf(item, "%d,%s,%ld:%ld,%ld:%ld,%d,%s;", DEVICE_TYPE, device_ip,
+//				nxthdr->ip6d_sec, nxthdr->ip6d_usec, (pkthdr->ts).tv_sec,
+//				(pkthdr->ts).tv_usec, nxthdr->ip6d_ssn, addr);
+//
+		sprintf(item, "%d,%s,%u:%u,%u:%u,%u,%s;", DEVICE_TYPE, device_ip,
+				ntohl(nxthdr->ip6d_sec), ntohl(nxthdr->ip6d_usec), (pkthdr->ts).tv_sec,
+				(pkthdr->ts).tv_usec, ntohl(nxthdr->ip6d_ssn), addr);
 
 		if (cnt < 300) {
-			strncat(newpkt, item, 187); //concat two string
+			strncat(newpkt, item, sizeof(item)); //concat two string
 			cnt++;
 		} else {
 			// when the packets size is enough then send it to mcs
+			// use multiple thread
 			mh->sendmsg(newpkt);
-			printf("content is :%s\n", newpkt);
+			//printf("content is :%s\n", newpkt);
+			printf("content is :%s\n", "test");
 
 			//clear for next measure info packet
 			cnt = 0;
@@ -123,7 +128,6 @@ int main(int argc, char **argv) {
 		std::cerr << "No 'name' setting in configuration file." << std::endl;
 	}
 
-	char *file = "./shm";
 	int size = 50;
 	shm_id = create_shm(file_shm, size_of_shm);
 	if (shm_id == 0)

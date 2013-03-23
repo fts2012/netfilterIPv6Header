@@ -99,18 +99,9 @@ int main(int argc, char **argv) {
 
 		TSimpleServer server(processor, serverTransport, transportFactory,
 				protocolFactory);
-		//TODO TEST
-		struct in6_addr s; // IPv6地址结构体
-		inet_pton(AF_INET6, "ff15::1", (void *) &s);
-		char dst[60];
-		inet_ntop(AF_INET6, (void *) &s, dst, sizeof(s));
-		//
-		char  msg[100];
-sprintf(msg, "cmd=ADD ip=%s interval=10", dst);
-		//send_msg_to_kernel("cmd=ADD ip=ff15::1 interval=10");
-		send_msg_to_kernel(msg);
+		send_msg_to_kernel("cmd=ADD ip=ff15::1 interval=5");
 
-		printf("Starting the mss server...\n");
+		printf("Starting the mss server, waiting for measure group command...\n");
 		server.serve();
 		printf("done.\n");
 	} catch (const SettingNotFoundException &nfex) {

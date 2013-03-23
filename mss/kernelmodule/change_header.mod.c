@@ -23,12 +23,15 @@ __attribute__((section("__versions"))) = {
 	{ 0xbd144d5, "sock_release" },
 	{ 0x85df9b6c, "strsep" },
 	{ 0xbc555ba4, "nf_register_hook" },
+	{ 0x91715312, "sprintf" },
+	{ 0x7d11c268, "jiffies" },
 	{ 0xe2d5255a, "strcmp" },
 	{ 0xc2e0eb00, "netlink_kernel_create" },
 	{ 0x50eedeb8, "printk" },
 	{ 0x42224298, "sscanf" },
-	{ 0x5152e605, "memcmp" },
+	{ 0xb6ed1e53, "strncpy" },
 	{ 0xb4390f9a, "mcount" },
+	{ 0x6c2e3320, "strncmp" },
 	{ 0x9e0cf698, "ip_route_me_harder" },
 	{ 0xbcac58ff, "netlink_unicast" },
 	{ 0x50fd15f2, "init_net" },
@@ -51,4 +54,4 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "35D29F9B4A4B6C2F0E805CD");
+MODULE_INFO(srcversion, "6FA2E9631095EF39ACAFE12");
