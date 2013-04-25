@@ -131,6 +131,7 @@ class Group:
    - name
    - deviceIp
    - groupIp
+   - groupport
   """
 
   thrift_spec = (
@@ -138,12 +139,14 @@ class Group:
     (1, TType.STRING, 'name', None, None, ), # 1
     (2, TType.STRING, 'deviceIp', None, None, ), # 2
     (3, TType.STRING, 'groupIp', None, None, ), # 3
+    (4, TType.I32, 'groupport', None, None, ), # 4
   )
 
-  def __init__(self, name=None, deviceIp=None, groupIp=None,):
+  def __init__(self, name=None, deviceIp=None, groupIp=None, groupport=None,):
     self.name = name
     self.deviceIp = deviceIp
     self.groupIp = groupIp
+    self.groupport = groupport
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -169,6 +172,11 @@ class Group:
           self.groupIp = iprot.readString();
         else:
           iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.I32:
+          self.groupport = iprot.readI32();
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -190,6 +198,10 @@ class Group:
     if self.groupIp is not None:
       oprot.writeFieldBegin('groupIp', TType.STRING, 3)
       oprot.writeString(self.groupIp)
+      oprot.writeFieldEnd()
+    if self.groupport is not None:
+      oprot.writeFieldBegin('groupport', TType.I32, 4)
+      oprot.writeI32(self.groupport)
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()

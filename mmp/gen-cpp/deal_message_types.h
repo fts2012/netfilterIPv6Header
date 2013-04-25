@@ -92,19 +92,20 @@ class Device {
 void swap(Device &a, Device &b);
 
 typedef struct _Group__isset {
-  _Group__isset() : name(false), deviceIp(false), groupIp(false) {}
+  _Group__isset() : name(false), deviceIp(false), groupIp(false), groupport(false) {}
   bool name;
   bool deviceIp;
   bool groupIp;
+  bool groupport;
 } _Group__isset;
 
 class Group {
  public:
 
-  static const char* ascii_fingerprint; // = "AB879940BD15B6B25691265F7384B271";
-  static const uint8_t binary_fingerprint[16]; // = {0xAB,0x87,0x99,0x40,0xBD,0x15,0xB6,0xB2,0x56,0x91,0x26,0x5F,0x73,0x84,0xB2,0x71};
+  static const char* ascii_fingerprint; // = "194A357BC9EE908DC4763D0A5147760A";
+  static const uint8_t binary_fingerprint[16]; // = {0x19,0x4A,0x35,0x7B,0xC9,0xEE,0x90,0x8D,0xC4,0x76,0x3D,0x0A,0x51,0x47,0x76,0x0A};
 
-  Group() : name(), deviceIp(), groupIp() {
+  Group() : name(), deviceIp(), groupIp(), groupport(0) {
   }
 
   virtual ~Group() throw() {}
@@ -112,6 +113,7 @@ class Group {
   std::string name;
   std::string deviceIp;
   std::string groupIp;
+  int32_t groupport;
 
   _Group__isset __isset;
 
@@ -127,6 +129,10 @@ class Group {
     groupIp = val;
   }
 
+  void __set_groupport(const int32_t val) {
+    groupport = val;
+  }
+
   bool operator == (const Group & rhs) const
   {
     if (!(name == rhs.name))
@@ -134,6 +140,8 @@ class Group {
     if (!(deviceIp == rhs.deviceIp))
       return false;
     if (!(groupIp == rhs.groupIp))
+      return false;
+    if (!(groupport == rhs.groupport))
       return false;
     return true;
   }

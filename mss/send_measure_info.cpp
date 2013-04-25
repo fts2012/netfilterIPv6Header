@@ -85,11 +85,12 @@ int  MessageHandler::sendmsg(const std::string& msg) {
 	}
 
 void  MessageHandler::registe_group(const std::string name, const std::string deviceIp,
-			std::string groupIp){
+			std::string groupIp, int groupport){
 			Group g;
 			g.name = name;
 			g.deviceIp = deviceIp;
 			g.groupIp = groupIp;
+			g.groupport = groupport;
 
 			  shared_ptr<TTransport> socket(new TSocket(this->mcs_ip,this->port));
 			  shared_ptr<TTransport> transport(new TFramedTransport(socket));

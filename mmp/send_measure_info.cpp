@@ -81,27 +81,28 @@ using namespace boost;
 		return 0;
 	}
 
-	void MessageHandler::registe_group(const std::string name, const std::string deviceIp,
-			std::string groupIp){
-			Group g;
-			g.name = name;
-			g.deviceIp = deviceIp;
-			g.groupIp = groupIp;
+	void  MessageHandler::registe_group(const std::string name, const std::string deviceIp,
+				std::string groupIp, int groupport){
+				Group g;
+				g.name = name;
+				g.deviceIp = deviceIp;
+				g.groupIp = groupIp;
+				g.groupport = groupport;
 
-			  shared_ptr<TTransport> socket(new TSocket(this->mcs_ip,this->port));
-			  shared_ptr<TTransport> transport(new TFramedTransport(socket));
-			  shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
-			  RecvMessageClient client(protocol);
+				  shared_ptr<TTransport> socket(new TSocket(this->mcs_ip,this->port));
+				  shared_ptr<TTransport> transport(new TFramedTransport(socket));
+				  shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+				  RecvMessageClient client(protocol);
 
-			  try {
-				transport->open();
-				client.registe_group(g);
-				transport->close();
-			  } catch (TException &tx) {
-				printf("ERROR: %s\n", tx.what());
-			  }
+				  try {
+					transport->open();
+					client.registe_group(g);
+					transport->close();
+				  } catch (TException &tx) {
+					printf("ERROR: %s\n", tx.what());
+				  }
 
-	}
+		}
 	void MessageHandler::registe_device(const std::string name, const std::string deviceIp,
 			int deviceType, const std::string relateIp, int listenPort){
 			Device d;

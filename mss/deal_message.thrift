@@ -22,10 +22,10 @@ struct Group{
 service RecvMessage{
 	//register the multicast group
 	void registe_group(1: Group grp);
-
+	
 	// registe the device
 	void registe_device(1: Device dev);
-
+	
 	//wait the measure information send by mmp
 	void send_measure_info(1: string msg); 
 }

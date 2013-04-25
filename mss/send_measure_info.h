@@ -35,7 +35,7 @@ public:
 	int sendmsg(const std::string& msg);
 
 	void registe_group(const std::string name, const std::string deviceIp,
-			std::string groupIp);
+			std::string groupIp, int groupport);
 
 	void registe_device(const std::string name, const std::string deviceIp,
 			int deviceType, const std::string relateIp, int listenPort);

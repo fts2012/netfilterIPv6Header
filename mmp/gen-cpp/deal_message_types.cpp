@@ -124,8 +124,8 @@ void swap(Device &a, Device &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* Group::ascii_fingerprint = "AB879940BD15B6B25691265F7384B271";
-const uint8_t Group::binary_fingerprint[16] = {0xAB,0x87,0x99,0x40,0xBD,0x15,0xB6,0xB2,0x56,0x91,0x26,0x5F,0x73,0x84,0xB2,0x71};
+const char* Group::ascii_fingerprint = "194A357BC9EE908DC4763D0A5147760A";
+const uint8_t Group::binary_fingerprint[16] = {0x19,0x4A,0x35,0x7B,0xC9,0xEE,0x90,0x8D,0xC4,0x76,0x3D,0x0A,0x51,0x47,0x76,0x0A};
 
 uint32_t Group::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -171,6 +171,14 @@ uint32_t Group::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
+      case 4:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->groupport);
+          this->__isset.groupport = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -199,6 +207,10 @@ uint32_t Group::write(::apache::thrift::protocol::TProtocol* oprot) const {
   xfer += oprot->writeString(this->groupIp);
   xfer += oprot->writeFieldEnd();
 
+  xfer += oprot->writeFieldBegin("groupport", ::apache::thrift::protocol::T_I32, 4);
+  xfer += oprot->writeI32(this->groupport);
+  xfer += oprot->writeFieldEnd();
+
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -209,6 +221,7 @@ void swap(Group &a, Group &b) {
   swap(a.name, b.name);
   swap(a.deviceIp, b.deviceIp);
   swap(a.groupIp, b.groupIp);
+  swap(a.groupport, b.groupport);
   swap(a.__isset, b.__isset);
 }
 
