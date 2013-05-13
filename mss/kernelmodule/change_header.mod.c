@@ -20,32 +20,32 @@ __attribute__((section("__versions"))) = {
 	{ 0x68d372d2, "module_layout" },
 	{ 0x794a2c29, "kmalloc_caches" },
 	{ 0xd0d8621b, "strlen" },
-	{ 0xbd144d5, "sock_release" },
+	{ 0x2441ddb, "sock_release" },
 	{ 0x85df9b6c, "strsep" },
-	{ 0xbc555ba4, "nf_register_hook" },
+	{ 0x3a1beaac, "nf_register_hook" },
 	{ 0x91715312, "sprintf" },
 	{ 0x7d11c268, "jiffies" },
 	{ 0xe2d5255a, "strcmp" },
-	{ 0xc2e0eb00, "netlink_kernel_create" },
+	{ 0x38b12fd0, "netlink_kernel_create" },
 	{ 0x50eedeb8, "printk" },
 	{ 0x42224298, "sscanf" },
 	{ 0xb6ed1e53, "strncpy" },
 	{ 0xb4390f9a, "mcount" },
 	{ 0x6c2e3320, "strncmp" },
-	{ 0x9e0cf698, "ip_route_me_harder" },
-	{ 0xbcac58ff, "netlink_unicast" },
-	{ 0x50fd15f2, "init_net" },
-	{ 0xfe77bec1, "skb_copy_expand" },
-	{ 0x87957d03, "__alloc_skb" },
+	{ 0xa2b3b417, "ip_route_me_harder" },
+	{ 0x3f18dce5, "netlink_unicast" },
+	{ 0xba2bf109, "init_net" },
+	{ 0x50e7037, "skb_copy_expand" },
+	{ 0xbfb5c0f5, "__alloc_skb" },
 	{ 0xf0fdf6cb, "__stack_chk_fail" },
-	{ 0xec778bbd, "kfree_skb" },
+	{ 0xa2e715a, "kfree_skb" },
 	{ 0x3f9b9190, "kmem_cache_alloc_trace" },
 	{ 0x1d2e87c6, "do_gettimeofday" },
-	{ 0x4b324b89, "nf_unregister_hook" },
+	{ 0xa7043528, "nf_unregister_hook" },
 	{ 0x37a0cba, "kfree" },
 	{ 0x2e60bace, "memcpy" },
-	{ 0x29158b36, "skb_put" },
-	{ 0x448bdc16, "sock_wfree" },
+	{ 0xbebe21f0, "skb_put" },
+	{ 0x5b124237, "sock_wfree" },
 };
 
 static const char __module_depends[]
@@ -54,4 +54,4 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "6FA2E9631095EF39ACAFE12");
+MODULE_INFO(srcversion, "BB0A2BC71AB029145FB3845");

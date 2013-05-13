@@ -24,6 +24,8 @@
 #include <thrift/protocol/TBinaryProtocol.h>
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransportUtils.h>
+#include <thrift/transport/TZlibTransport.h>
+#include <thrift/transport/TBufferTransports.h>
 #include "send_measure_info.h"
 
 #include "./gen-cpp/RecvMessage.h"
@@ -64,8 +66,13 @@ using namespace boost;
 
 
 	  shared_ptr<TTransport> socket(new TSocket(this->mcs_ip,this->port));
-	  shared_ptr<TTransport> transport(new TFramedTransport(socket));
+//	  shared_ptr<TTransport> transport(new TFramedTransport(socket));
+//	  shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+
+	  shared_ptr<TZlibTransport> zlibTransport(new TZlibTransport(socket));
+	  shared_ptr<TTransport> transport(new TBufferedTransport(zlibTransport));
 	  shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+
 	  RecvMessageClient client(protocol);
 
 	  try {

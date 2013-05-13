@@ -55,6 +55,7 @@ void deal_with_pkt(u_char *arg, const struct pcap_pkthdr *pkthdr,
 	if (ipv6_hdr->ip6_ctlun.ip6_un1.ip6_un1_nxt == 60 && match_rule(shm_id, &destip)) {
 		nxthdr =  (struct ip6_dst_hdr *)(packet + 40 + ETH_SIZE);
 		//1,2001:da9:2324:1234:1243::1,12345678912134567,12345678912134567,555555,ff15:1234::2;
+		//992 bit
 		//type, device ip, send ts ,recv ts, sequence, group ip
 		inet_ntop(AF_INET6, &destip, addr, sizeof(addr));
 
@@ -62,11 +63,11 @@ void deal_with_pkt(u_char *arg, const struct pcap_pkthdr *pkthdr,
 //				nxthdr->ip6d_sec, nxthdr->ip6d_usec, (pkthdr->ts).tv_sec,
 //				(pkthdr->ts).tv_usec, nxthdr->ip6d_ssn, addr);
 //
-		sprintf(item, "%d,%s,%u:%u,%u:%u,%u,%s;", DEVICE_TYPE, device_ip,
+		sprintf(item, "%d,%s,%u,%u,%u,%u,%u,%s;", DEVICE_TYPE, device_ip,
 				ntohl(nxthdr->ip6d_sec), ntohl(nxthdr->ip6d_usec), (pkthdr->ts).tv_sec,
 				(pkthdr->ts).tv_usec, ntohl(nxthdr->ip6d_ssn), addr);
 
-		if (cnt < 300) {
+		if (cnt < 60) {
 			strncat(newpkt, item, sizeof(item)); //concat two string
 			cnt++;
 		} else {
@@ -150,7 +151,8 @@ int main(int argc, char **argv) {
 
 	//construct a filter
 	struct bpf_program filter;
-	pcap_compile(device, &filter, "ip6 proto udp", 1, 0); //ipv6 packets and the protocal is udp
+	//ipv6 packets and the protocal is udp
+	pcap_compile(device, &filter, "ip6 proto udp", 1, 0);
 	pcap_setfilter(device, &filter);
 
 	//wait

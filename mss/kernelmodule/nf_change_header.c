@@ -62,7 +62,7 @@ ip_list  ipaddrs = NULL;
 /* measure frequency do measure everty x time*/
 unsigned long time_cycle =0;
 /* packets' count of reconstructed */
-int packets = 5;
+int packets = 10;
 /*in a measure cycle, num of packets have been caught*/
 int caught_size = 0;
 /* interval time seconds*/
@@ -126,6 +126,7 @@ void nl_data_ready(struct sk_buff *__skb)
 
         //interval time
         time_cycle = jiffies + interval * HZ;
+        PRINT("recevie jiffies:%d time cycle: %d\n", jiffies, time_cycle);
 
 // the comand format
 // ADD>x:x:x:x
@@ -201,10 +202,10 @@ ip6_reconstruct_ori_pkt(struct sk_buff *skb)
 	   sample_seq=0;
 	}
 	ip6_dst->ip6d_ssn = htonl(sample_seq);
-	for(i = skb->data; i <= skb->data + skb->len -4; i = i+4)
-	{
-		PRINT("%x",htonl(*(long *)(i)));
-	}
+//	for(i = skb->data; i <= skb->data + skb->len -4; i = i+4)
+//	{
+//		PRINT("%x",htonl(*(long *)(i)));
+//	}
 
 	return skb;
 }
@@ -312,7 +313,9 @@ if(ip6_hdr->version == 6)
     		{
     			//for next measure catch cycle
     			caught_size =0;
+	            PRINT("old time :%d\n", time_cycle);
     			time_cycle = jiffies + interval * HZ;
+    			PRINT("new time :%d\n", time_cycle);
     		}
     		else
     		{
@@ -323,7 +326,7 @@ if(ip6_hdr->version == 6)
     		        	if(ip6_hdr->nexthdr == 0x11)
     		        	{
     		        		//deal with those ip packets which send in udp
-    		            PRINT("tailroom is enough\n");
+    		            PRINT("tailroom is enough, deal pkt: %d\n", caught_size);
     		            skb = ip6_reconstruct_ori_pkt(skb);
     		        	}
     		        }
@@ -413,7 +416,7 @@ static int __init ip6_multi_init(void)
     }
 
 	ret = nf_register_hook(&nf_out_modify);
-	PRINT("IPV6 multicast packet modify module init.\n");
+	PRINT("IPV6 multicastnf_out_modify packet modify module init.\n");
 	return 0; //success
 }
 

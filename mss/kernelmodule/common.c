@@ -43,7 +43,7 @@ int match_rule(const ip_list ipaddrs, char * check_ip)
     ip_node node = ipaddrs->head;
     while(node != NULL)
     {
-    	printk("ipaddrs:%s ==? %s  ",node->addr, check_ip);
+    	//printk("ipaddrs:%s ==? %s  ",node->addr, check_ip);
     	// if find return 1
         if(strncmp(node->addr,check_ip,sizeof(check_ip)) == 0)
             return 1;

@@ -100,16 +100,16 @@ int main(int argc, char **argv) {
 		TSimpleServer server(processor, serverTransport, transportFactory,
 				protocolFactory);
 		//TODO FAW DATA
-		send_msg_to_kernel("cmd=ADD ip=ff14::1 interval=1");
-		send_msg_to_kernel("cmd=ADD ip=ff14::3 interval=1");
-		send_msg_to_kernel("cmd=ADD ip=ff16::2 interval=1");
-		send_msg_to_kernel("cmd=ADD ip=ff14::4 interval=1");
-		send_msg_to_kernel("cmd=ADD ip=ff19::1 interval=1");
-		send_msg_to_kernel("cmd=ADD ip=ff14::5 interval=1");
-		send_msg_to_kernel("cmd=ADD ip=ff17::1 interval=1");
-		send_msg_to_kernel("cmd=ADD ip=ff18::2 interval=1");
-		send_msg_to_kernel("cmd=ADD ip=ff20::1 interval=1");
-		send_msg_to_kernel("cmd=ADD ip=ff21::1 interval=1");
+		send_msg_to_kernel("cmd=ADD ip=ff15::1 interval=5");
+		send_msg_to_kernel("cmd=ADD ip=ff15::3 interval=5");
+		send_msg_to_kernel("cmd=ADD ip=ff16::1 interval=5");
+		send_msg_to_kernel("cmd=ADD ip=ff15::4 interval=5");
+		send_msg_to_kernel("cmd=ADD ip=ff15::5 interval=5");
+		send_msg_to_kernel("cmd=ADD ip=ff17::1 interval=5");
+		send_msg_to_kernel("cmd=ADD ip=ff18::1 interval=5");
+		send_msg_to_kernel("cmd=ADD ip=ff19::1 interval=5");
+		send_msg_to_kernel("cmd=ADD ip=ff20::1 interval=5");
+		send_msg_to_kernel("cmd=ADD ip=ff21::1 interval=5");
 //		send_msg_to_kernel("cmd=ADD ip=ff15::6 interval=5");
 //		send_msg_to_kernel("cmd=ADD ip=ff15::7 interval=5");
 //		send_msg_to_kernel("cmd=ADD ip=ff15::8 interval=5");

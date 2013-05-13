@@ -109,7 +109,7 @@ printk("nl_data_ready......in\n");
         nlh = nlmsg_hdr(skb);
 
         memcpy(str, NLMSG_DATA(nlh), sizeof(str));
-        printk("Message received:%s\n",str) ;
+      printk("Message received:%s\n",str) ;
         sscanf(str, "cmd=%s ip=%s interval=%d", command, ipaddr,&interval);
         memcpy(&recvaddr,ipaddr,sizeof(recvaddr));
 //convert ipaddr to struct in6_addr

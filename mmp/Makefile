@@ -24,7 +24,7 @@ INCS_DIRS  =-I${USR_DIR}/include -I${THRIFT_DIR}/include/thrift
 LIBS_DIRS  =-L${USR_DIR}/lib -L${USR_DIR}/${THRIFT_VER}/lib
 CPP_DEFS   =-D=HAVE_NETINET_IN_H 
 CPP_OPTS   =-Wall -O2
-LIBS       =-lpcap -lconfig++  -lthrift
+LIBS       =-lpcap -lconfig++  -lthrift -lthriftz
 
 GEN_SRC    = ./gen-cpp/deal_message_types.cpp \
              ./gen-cpp/RecvMessage.cpp \

@@ -1,6 +1,7 @@
 # for test
 import sys
 import sqlite3
+from thrift.protocol.TCompactProtocol import TCompactProtocolFactory
 sys.path.append('./gen-py')
 
 from deal_message import RecvMessage
@@ -8,8 +9,10 @@ from deal_message.ttypes import *
 
 from thrift.transport import TSocket
 from thrift.transport import TTransport
-from thrift.protocol import TBinaryProtocol
+from thrift.protocol import TBinaryProtocol, TCompactProtocol
 from thrift.server import TNonblockingServer
+from thrift.server import TServer
+
 
 #TServer#TProcessPoolServer #
 
@@ -51,15 +54,19 @@ handler = RecvHandler()
 processor = RecvMessage.Processor(handler)
 
 transport = TSocket.TServerSocket("localhost",6542)
-pfactory = TBinaryProtocol.TBinaryProtocolFactory()
+
+pfactory =TCompactProtocol.TCompactProtocolFactory()
 tfactory = TTransport.TBufferedTransportFactory()
+
+#pfactory = TBinaryProtocol.TBinaryProtocolFactory()
+#tfactory = TTransport.TBufferedTransportFactory()
 #server = TServer.TThreadedServer(processor, transport, tfactory, pfactory)
 
 #server = TServer.TProcessPoolServer(processor, transport, tfactory, pfactory)
 #server.setPostForkCallback(setupHandlers)
 #setupHandlers()
-
-server = TNonblockingServer.TNonblockingServer(processor, transport, inputProtocolFactory=pfactory)
+server = TServer.TSimpleServer(processor, transport ,tfactory, pfactory)
+#server = TNonblockingServer.TNonblockingServer(processor, transport)
 
 
 
